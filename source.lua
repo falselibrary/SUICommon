@@ -163,6 +163,9 @@ local function Tween(obj, props, duration, style, dir)
 end
 
 local function PlayTween(obj, props, duration)
+    if type(duration) ~= "number" then
+        duration = 0.3
+    end
     Tween(obj, props, duration):Play()
 end
 
@@ -532,8 +535,8 @@ function Nebula:CreateWindow(config)
         end)
 
         sideBtn.MouseButton1Click:Connect(function()
-            PlayTween(TabIndicator, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Position = UDim2.new(0, 0, 0, yPos)}):Play()
-            for _, t in pairs(Window.Tabs) do
+            PlayTween(TabIndicator, {Position = UDim2.new(0, 0, 0, yPos)}, 0.3)
+                for _, t in pairs(Window.Tabs) do
                 t.Page.Visible = false
             end
             Page.Visible = true
