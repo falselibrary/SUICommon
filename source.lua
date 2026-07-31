@@ -3,6 +3,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 local UserId = LocalPlayer.UserId
@@ -12,6 +13,7 @@ local Themes = {
     Dark = {
         Main = Color3.fromRGB(18, 18, 22),
         Sidebar = Color3.fromRGB(12, 12, 15),
+        TopBar = Color3.fromRGB(15, 15, 18),
         Stroke = Color3.fromRGB(45, 45, 55),
         Accent = Color3.fromRGB(100, 120, 255),
         Text = Color3.fromRGB(240, 240, 240),
@@ -23,10 +25,12 @@ local Themes = {
         ToggleOff = Color3.fromRGB(50, 50, 60),
         Hover = Color3.fromRGB(35, 35, 45),
         Glow = Color3.fromRGB(0, 0, 0),
+        TabActive = Color3.fromRGB(30, 30, 40),
     },
     Cyber = {
         Main = Color3.fromRGB(5, 5, 5),
         Sidebar = Color3.fromRGB(0, 0, 0),
+        TopBar = Color3.fromRGB(8, 8, 5),
         Stroke = Color3.fromRGB(255, 255, 0),
         Accent = Color3.fromRGB(255, 255, 0),
         Text = Color3.fromRGB(255, 255, 0),
@@ -38,10 +42,12 @@ local Themes = {
         ToggleOff = Color3.fromRGB(40, 40, 0),
         Hover = Color3.fromRGB(25, 25, 5),
         Glow = Color3.fromRGB(0, 0, 0),
+        TabActive = Color3.fromRGB(30, 30, 0),
     },
     Sakura = {
         Main = Color3.fromRGB(255, 240, 245),
         Sidebar = Color3.fromRGB(255, 225, 235),
+        TopBar = Color3.fromRGB(255, 230, 240),
         Stroke = Color3.fromRGB(255, 180, 200),
         Accent = Color3.fromRGB(255, 100, 150),
         Text = Color3.fromRGB(100, 50, 70),
@@ -53,10 +59,12 @@ local Themes = {
         ToggleOff = Color3.fromRGB(230, 210, 215),
         Hover = Color3.fromRGB(255, 230, 238),
         Glow = Color3.fromRGB(255, 200, 220),
+        TabActive = Color3.fromRGB(255, 220, 230),
     },
     Ocean = {
         Main = Color3.fromRGB(10, 20, 30),
         Sidebar = Color3.fromRGB(5, 15, 25),
+        TopBar = Color3.fromRGB(8, 18, 28),
         Stroke = Color3.fromRGB(30, 60, 90),
         Accent = Color3.fromRGB(0, 180, 255),
         Text = Color3.fromRGB(200, 240, 255),
@@ -68,10 +76,12 @@ local Themes = {
         ToggleOff = Color3.fromRGB(30, 50, 65),
         Hover = Color3.fromRGB(20, 40, 55),
         Glow = Color3.fromRGB(0, 10, 20),
+        TabActive = Color3.fromRGB(15, 35, 55),
     },
     Forest = {
         Main = Color3.fromRGB(15, 25, 15),
         Sidebar = Color3.fromRGB(10, 20, 10),
+        TopBar = Color3.fromRGB(12, 22, 12),
         Stroke = Color3.fromRGB(40, 60, 40),
         Accent = Color3.fromRGB(100, 255, 100),
         Text = Color3.fromRGB(220, 255, 220),
@@ -83,10 +93,12 @@ local Themes = {
         ToggleOff = Color3.fromRGB(35, 50, 35),
         Hover = Color3.fromRGB(28, 42, 28),
         Glow = Color3.fromRGB(5, 10, 5),
+        TabActive = Color3.fromRGB(22, 35, 22),
     },
     Gold = {
         Main = Color3.fromRGB(20, 20, 20),
         Sidebar = Color3.fromRGB(15, 15, 15),
+        TopBar = Color3.fromRGB(18, 17, 12),
         Stroke = Color3.fromRGB(255, 180, 0),
         Accent = Color3.fromRGB(255, 180, 0),
         Text = Color3.fromRGB(255, 220, 150),
@@ -98,10 +110,12 @@ local Themes = {
         ToggleOff = Color3.fromRGB(50, 45, 30),
         Hover = Color3.fromRGB(38, 35, 25),
         Glow = Color3.fromRGB(0, 0, 0),
+        TabActive = Color3.fromRGB(35, 30, 20),
     },
     Light = {
         Main = Color3.fromRGB(245, 245, 250),
         Sidebar = Color3.fromRGB(230, 230, 235),
+        TopBar = Color3.fromRGB(235, 235, 240),
         Stroke = Color3.fromRGB(210, 210, 220),
         Accent = Color3.fromRGB(80, 100, 255),
         Text = Color3.fromRGB(30, 30, 40),
@@ -113,7 +127,31 @@ local Themes = {
         ToggleOff = Color3.fromRGB(200, 200, 210),
         Hover = Color3.fromRGB(235, 235, 242),
         Glow = Color3.fromRGB(200, 200, 210),
+        TabActive = Color3.fromRGB(225, 225, 235),
     }
+}
+
+local AngryPhrases = {
+    "HEY! STOP POKING ME!",
+    "QUIT IT!!",
+    "I SAID STOP!",
+    "DO THAT AGAIN, I DARE YOU",
+    "IM GETTING ANGRY >:(",
+    "SERIOUSLY?!",
+    "THATS IT IM LEAVING",
+    "STOP TOUCHING MY FACE",
+    "YOU THINK THIS IS FUNNY?",
+    "ONE MORE TIME AND IM DONE",
+    "AAAARGH!!",
+    "WHY DO YOU KEEP CLICKING ME",
+    "GO AWAY!!",
+    "IM NOT A BUTTON",
+    "PLEASE... JUST STOP",
+    "OK FINE WHATEVER",
+    "YOU HAVE NO LIFE DO YOU",
+    "*INTERNAL SCREAMING*",
+    "THATS THE LAST STRAW",
+    "IM TELLING MOM",
 }
 
 local function Tween(obj, props, duration)
@@ -163,14 +201,538 @@ end
 local Nebula = {}
 Nebula.__index = Nebula
 
+function Nebula:KeySystem(config)
+    config = config or {}
+    local title = config.Title or "NEBULA // KEY SYSTEM"
+    local subtitle = config.Subtitle or "Enter your key to continue"
+    local note = config.Note or "Key required to access this script"
+    local keys = config.Keys or {"defaultkey"}
+    local themeName = config.Theme or "Dark"
+    local saveKey = config.SaveKey or false
+    local fileName = config.FileName or "NebulaKey.txt"
+    local getKeyURL = config.GetKeyURL or nil
+    local copyKeyURL = config.CopyKeyURL or nil
+    local discordLink = config.DiscordLink or nil
+    local maxAttempts = config.MaxAttempts or 0
+    local attemptCount = 0
+
+    local currentTheme = Themes[themeName] or Themes.Dark
+
+    if saveKey and isfile and isfile(fileName) then
+        local savedKey = readfile(fileName)
+        for _, k in pairs(keys) do
+            if savedKey == k then
+                return true
+            end
+        end
+    end
+
+    local success = false
+    local completed = false
+    local avatarClickCount = 0
+    local avatarAngry = false
+    local avatarSpinning = false
+
+    local KeyGui = Instance.new("ScreenGui")
+    KeyGui.Name = "NebulaKeySystem_" .. math.random(100000, 999999)
+    KeyGui.Parent = CoreGui
+    KeyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    KeyGui.ResetOnSpawn = false
+
+    local Backdrop = Instance.new("Frame")
+    Backdrop.Parent = KeyGui
+    Backdrop.Size = UDim2.new(1, 0, 1, 0)
+    Backdrop.BackgroundColor3 = Color3.new(0, 0, 0)
+    Backdrop.BackgroundTransparency = 1
+    Backdrop.BorderSizePixel = 0
+    Backdrop.ZIndex = 1
+
+    local GlowFrame = Instance.new("Frame")
+    GlowFrame.Parent = KeyGui
+    GlowFrame.BackgroundColor3 = currentTheme.Glow
+    GlowFrame.BackgroundTransparency = 0.7
+    GlowFrame.Size = UDim2.new(0, 420, 0, 340)
+    GlowFrame.Position = UDim2.new(0.5, -210, 0.5, -170)
+    GlowFrame.ZIndex = 2
+    CreateCorner(GlowFrame, 10)
+
+    local KeyFrame = Instance.new("Frame")
+    KeyFrame.Parent = GlowFrame
+    KeyFrame.BackgroundColor3 = currentTheme.Main
+    KeyFrame.Position = UDim2.new(0, 2, 0, 2)
+    KeyFrame.Size = UDim2.new(1, -4, 1, -4)
+    KeyFrame.ClipsDescendants = true
+    KeyFrame.ZIndex = 3
+    CreateCorner(KeyFrame, 8)
+    CreateStroke(KeyFrame, currentTheme.Stroke, 1.5)
+
+    local TopBar = Instance.new("Frame")
+    TopBar.Parent = KeyFrame
+    TopBar.Size = UDim2.new(1, 0, 0, 40)
+    TopBar.BackgroundColor3 = currentTheme.TopBar
+    TopBar.BorderSizePixel = 0
+    TopBar.ZIndex = 4
+    CreateCorner(TopBar, 8)
+
+    local TopBarFix = Instance.new("Frame")
+    TopBarFix.Parent = TopBar
+    TopBarFix.Size = UDim2.new(1, 0, 0, 10)
+    TopBarFix.Position = UDim2.new(0, 0, 1, -10)
+    TopBarFix.BackgroundColor3 = currentTheme.TopBar
+    TopBarFix.BorderSizePixel = 0
+    TopBarFix.ZIndex = 4
+
+    local TopBarLine = Instance.new("Frame")
+    TopBarLine.Parent = KeyFrame
+    TopBarLine.Size = UDim2.new(1, 0, 0, 1)
+    TopBarLine.Position = UDim2.new(0, 0, 0, 40)
+    TopBarLine.BackgroundColor3 = currentTheme.Stroke
+    TopBarLine.BorderSizePixel = 0
+    TopBarLine.ZIndex = 4
+
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Parent = TopBar
+    TitleLabel.Size = UDim2.new(1, -50, 1, 0)
+    TitleLabel.Position = UDim2.new(0, 15, 0, 0)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = title
+    TitleLabel.Font = Enum.Font.Code
+    TitleLabel.TextSize = 14
+    TitleLabel.TextColor3 = currentTheme.Accent
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.ZIndex = 5
+
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Parent = TopBar
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+    CloseBtn.BackgroundTransparency = 1
+    CloseBtn.Text = "×"
+    CloseBtn.Font = Enum.Font.Code
+    CloseBtn.TextSize = 22
+    CloseBtn.TextColor3 = currentTheme.DimText
+    CloseBtn.ZIndex = 5
+    CloseBtn.MouseEnter:Connect(function()
+        PlayTween(CloseBtn, {TextColor3 = Color3.fromRGB(255, 80, 80)}, 0.2)
+    end)
+    CloseBtn.MouseLeave:Connect(function()
+        PlayTween(CloseBtn, {TextColor3 = currentTheme.DimText}, 0.2)
+    end)
+
+    local AvatarHolder = Instance.new("Frame")
+    AvatarHolder.Parent = KeyFrame
+    AvatarHolder.Size = UDim2.new(0, 70, 0, 70)
+    AvatarHolder.Position = UDim2.new(0.5, -35, 0, 52)
+    AvatarHolder.BackgroundTransparency = 1
+    AvatarHolder.ZIndex = 5
+
+    local AvatarImage = Instance.new("ImageLabel")
+    AvatarImage.Parent = AvatarHolder
+    AvatarImage.Size = UDim2.new(1, 0, 1, 0)
+    AvatarImage.BackgroundColor3 = currentTheme.Card
+    AvatarImage.Image = IsAvatarReady and AvatarContent or ""
+    AvatarImage.ZIndex = 6
+    CreateCorner(AvatarImage, 35)
+    local avatarStroke = CreateStroke(AvatarImage, currentTheme.Accent, 2)
+
+    local AvatarBtn = Instance.new("TextButton")
+    AvatarBtn.Parent = AvatarHolder
+    AvatarBtn.Size = UDim2.new(1, 0, 1, 0)
+    AvatarBtn.BackgroundTransparency = 1
+    AvatarBtn.Text = ""
+    AvatarBtn.ZIndex = 7
+
+    local AngrySpeech = Instance.new("TextLabel")
+    AngrySpeech.Parent = KeyFrame
+    AngrySpeech.Size = UDim2.new(0, 250, 0, 25)
+    AngrySpeech.Position = UDim2.new(0.5, -125, 0, 125)
+    AngrySpeech.BackgroundTransparency = 1
+    AngrySpeech.Text = ""
+    AngrySpeech.Font = Enum.Font.Code
+    AngrySpeech.TextSize = 10
+    AngrySpeech.TextColor3 = Color3.fromRGB(255, 80, 80)
+    AngrySpeech.ZIndex = 6
+    AngrySpeech.TextWrapped = true
+
+    local MoodLabel = Instance.new("TextLabel")
+    MoodLabel.Parent = KeyFrame
+    MoodLabel.Size = UDim2.new(1, 0, 0, 16)
+    MoodLabel.Position = UDim2.new(0, 0, 0, 128)
+    MoodLabel.BackgroundTransparency = 1
+    MoodLabel.Text = ""
+    MoodLabel.Font = Enum.Font.Code
+    MoodLabel.TextSize = 18
+    MoodLabel.TextColor3 = currentTheme.DimText
+    MoodLabel.ZIndex = 6
+
+    AvatarBtn.MouseButton1Click:Connect(function()
+        avatarClickCount = avatarClickCount + 1
+
+        if avatarClickCount <= 3 then
+            local spinTween = TweenService:Create(AvatarImage, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {Rotation = AvatarImage.Rotation + 360})
+            spinTween:Play()
+            MoodLabel.Text = "😊"
+            AngrySpeech.Text = ""
+            AngrySpeech.TextColor3 = currentTheme.Accent
+        elseif avatarClickCount <= 6 then
+            local spinTween = TweenService:Create(AvatarImage, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {Rotation = AvatarImage.Rotation + 720})
+            spinTween:Play()
+            MoodLabel.Text = "😐"
+            AngrySpeech.Text = "hmm..."
+            AngrySpeech.TextColor3 = currentTheme.DimText
+        elseif avatarClickCount <= 10 then
+            local spinTween = TweenService:Create(AvatarImage, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {Rotation = AvatarImage.Rotation + 1080})
+            spinTween:Play()
+            MoodLabel.Text = "😠"
+            avatarStroke.Color = Color3.fromRGB(255, 150, 50)
+            local phrase = AngryPhrases[math.random(1, #AngryPhrases)]
+            AngrySpeech.Text = phrase
+            AngrySpeech.TextColor3 = Color3.fromRGB(255, 150, 50)
+
+            local origPos = AvatarHolder.Position
+            for i = 1, 3 do
+                PlayTween(AvatarHolder, {Position = origPos + UDim2.new(0, (i % 2 == 0 and -5 or 5), 0, 0)}, 0.04)
+                task.wait(0.04)
+            end
+            PlayTween(AvatarHolder, {Position = origPos}, 0.04)
+        elseif avatarClickCount <= 15 then
+            local spinTween = TweenService:Create(AvatarImage, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {Rotation = AvatarImage.Rotation + 2160})
+            spinTween:Play()
+            MoodLabel.Text = "🤬"
+            avatarStroke.Color = Color3.fromRGB(255, 0, 0)
+            local phrase = AngryPhrases[math.random(1, #AngryPhrases)]
+            AngrySpeech.Text = phrase:upper() .. "!!!"
+            AngrySpeech.TextColor3 = Color3.fromRGB(255, 50, 50)
+            AngrySpeech.TextSize = 12
+
+            local origPos = AvatarHolder.Position
+            for i = 1, 6 do
+                PlayTween(AvatarHolder, {Position = origPos + UDim2.new(0, (i % 2 == 0 and -10 or 10), 0, (i % 2 == 0 and -3 or 3))}, 0.03)
+                task.wait(0.03)
+            end
+            PlayTween(AvatarHolder, {Position = origPos}, 0.04)
+
+            PlayTween(AvatarImage, {Size = UDim2.new(1.15, 0, 1.15, 0)}, 0.1)
+            task.delay(0.1, function()
+                PlayTween(AvatarImage, {Size = UDim2.new(1, 0, 1, 0)}, 0.1)
+            end)
+        else
+            MoodLabel.Text = "💀"
+            AngrySpeech.Text = "i am dead inside now. thanks."
+            AngrySpeech.TextColor3 = currentTheme.DimText
+            AngrySpeech.TextSize = 10
+            avatarStroke.Color = Color3.fromRGB(80, 80, 80)
+
+            PlayTween(AvatarImage, {ImageTransparency = 0.5, Rotation = AvatarImage.Rotation + 180}, 0.3)
+            task.delay(1, function()
+                PlayTween(AvatarImage, {ImageTransparency = 0, Rotation = 0}, 0.5)
+                avatarStroke.Color = currentTheme.Accent
+                MoodLabel.Text = ""
+                AngrySpeech.Text = ""
+                avatarClickCount = 0
+            end)
+        end
+    end)
+
+    local SubtitleLabel = Instance.new("TextLabel")
+    SubtitleLabel.Parent = KeyFrame
+    SubtitleLabel.Size = UDim2.new(1, -30, 0, 20)
+    SubtitleLabel.Position = UDim2.new(0, 15, 0, 155)
+    SubtitleLabel.BackgroundTransparency = 1
+    SubtitleLabel.Text = subtitle
+    SubtitleLabel.Font = Enum.Font.Code
+    SubtitleLabel.TextSize = 13
+    SubtitleLabel.TextColor3 = currentTheme.Text
+    SubtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    SubtitleLabel.ZIndex = 5
+
+    local NoteLabel = Instance.new("TextLabel")
+    NoteLabel.Parent = KeyFrame
+    NoteLabel.Size = UDim2.new(1, -30, 0, 16)
+    NoteLabel.Position = UDim2.new(0, 15, 0, 175)
+    NoteLabel.BackgroundTransparency = 1
+    NoteLabel.Text = "// " .. note
+    NoteLabel.Font = Enum.Font.Code
+    NoteLabel.TextSize = 10
+    NoteLabel.TextColor3 = currentTheme.DimText
+    NoteLabel.TextXAlignment = Enum.TextXAlignment.Left
+    NoteLabel.ZIndex = 5
+
+    local InputBg = Instance.new("Frame")
+    InputBg.Parent = KeyFrame
+    InputBg.Size = UDim2.new(1, -30, 0, 40)
+    InputBg.Position = UDim2.new(0, 15, 0, 200)
+    InputBg.BackgroundColor3 = currentTheme.ElementBg
+    InputBg.ZIndex = 5
+    CreateCorner(InputBg, 6)
+    local inputStroke = CreateStroke(InputBg, currentTheme.Stroke, 1)
+
+    local InputIcon = Instance.new("TextLabel")
+    InputIcon.Parent = InputBg
+    InputIcon.Size = UDim2.new(0, 25, 1, 0)
+    InputIcon.Position = UDim2.new(0, 8, 0, 0)
+    InputIcon.BackgroundTransparency = 1
+    InputIcon.Text = "🔑"
+    InputIcon.Font = Enum.Font.Code
+    InputIcon.TextSize = 14
+    InputIcon.TextColor3 = currentTheme.DimText
+    InputIcon.ZIndex = 6
+
+    local InputBox = Instance.new("TextBox")
+    InputBox.Parent = InputBg
+    InputBox.Size = UDim2.new(1, -45, 1, 0)
+    InputBox.Position = UDim2.new(0, 35, 0, 0)
+    InputBox.BackgroundTransparency = 1
+    InputBox.Text = ""
+    InputBox.PlaceholderText = "Enter key here..."
+    InputBox.PlaceholderColor3 = currentTheme.DimText
+    InputBox.TextColor3 = currentTheme.Text
+    InputBox.Font = Enum.Font.Code
+    InputBox.TextSize = 13
+    InputBox.TextXAlignment = Enum.TextXAlignment.Left
+    InputBox.ClearTextOnFocus = false
+    InputBox.ZIndex = 6
+
+    InputBox.Focused:Connect(function()
+        PlayTween(inputStroke, {Color = currentTheme.Accent}, 0.2)
+        PlayTween(InputIcon, {TextColor3 = currentTheme.Accent}, 0.2)
+    end)
+    InputBox.FocusLost:Connect(function()
+        PlayTween(inputStroke, {Color = currentTheme.Stroke}, 0.2)
+        PlayTween(InputIcon, {TextColor3 = currentTheme.DimText}, 0.2)
+    end)
+
+    local BtnContainer = Instance.new("Frame")
+    BtnContainer.Parent = KeyFrame
+    BtnContainer.Size = UDim2.new(1, -30, 0, 36)
+    BtnContainer.Position = UDim2.new(0, 15, 0, 252)
+    BtnContainer.BackgroundTransparency = 1
+    BtnContainer.ZIndex = 5
+
+    local btnLayout = Instance.new("UIListLayout")
+    btnLayout.Parent = BtnContainer
+    btnLayout.FillDirection = Enum.FillDirection.Horizontal
+    btnLayout.Padding = UDim.new(0, 8)
+    btnLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+
+    local function MakeKeyButton(text, primary, wide)
+        local Btn = Instance.new("TextButton")
+        Btn.Parent = BtnContainer
+        Btn.Size = UDim2.new(0, wide and 120 or 95, 1, 0)
+        Btn.BackgroundColor3 = primary and currentTheme.Accent or currentTheme.ElementBg
+        Btn.Text = text
+        Btn.Font = Enum.Font.Code
+        Btn.TextSize = 12
+        Btn.TextColor3 = primary and currentTheme.Main or currentTheme.Text
+        Btn.AutoButtonColor = false
+        Btn.ZIndex = 6
+        CreateCorner(Btn, 6)
+        if not primary then CreateStroke(Btn, currentTheme.Stroke, 1) end
+        Btn.MouseEnter:Connect(function()
+            if primary then
+                PlayTween(Btn, {BackgroundColor3 = currentTheme.Text, TextColor3 = currentTheme.Main}, 0.2)
+            else
+                PlayTween(Btn, {BackgroundColor3 = currentTheme.Hover}, 0.2)
+            end
+        end)
+        Btn.MouseLeave:Connect(function()
+            if primary then
+                PlayTween(Btn, {BackgroundColor3 = currentTheme.Accent, TextColor3 = currentTheme.Main}, 0.2)
+            else
+                PlayTween(Btn, {BackgroundColor3 = currentTheme.ElementBg}, 0.2)
+            end
+        end)
+        return Btn
+    end
+
+    local SubmitBtn = MakeKeyButton("SUBMIT", true, false)
+    local GetKeyBtn = MakeKeyButton("GET KEY", false, false)
+
+    local CopyLinkBtn = nil
+    if copyKeyURL then
+        CopyLinkBtn = MakeKeyButton("COPY LINK", false, false)
+    end
+
+    local DiscordBtn = nil
+    if discordLink then
+        DiscordBtn = MakeKeyButton("DISCORD", false, false)
+    end
+
+    local StatusLabel = Instance.new("TextLabel")
+    StatusLabel.Parent = KeyFrame
+    StatusLabel.Size = UDim2.new(1, -30, 0, 18)
+    StatusLabel.Position = UDim2.new(0, 15, 0, 296)
+    StatusLabel.BackgroundTransparency = 1
+    StatusLabel.Text = ""
+    StatusLabel.Font = Enum.Font.Code
+    StatusLabel.TextSize = 11
+    StatusLabel.TextColor3 = currentTheme.DimText
+    StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+    StatusLabel.ZIndex = 5
+
+    local AttemptsLabel = Instance.new("TextLabel")
+    AttemptsLabel.Parent = KeyFrame
+    AttemptsLabel.Size = UDim2.new(1, -30, 0, 14)
+    AttemptsLabel.Position = UDim2.new(0, 15, 1, -20)
+    AttemptsLabel.BackgroundTransparency = 1
+    AttemptsLabel.Text = maxAttempts > 0 and ("// ATTEMPTS: 0/" .. maxAttempts) or ""
+    AttemptsLabel.Font = Enum.Font.Code
+    AttemptsLabel.TextSize = 9
+    AttemptsLabel.TextColor3 = currentTheme.DimText
+    AttemptsLabel.TextXAlignment = Enum.TextXAlignment.Right
+    AttemptsLabel.ZIndex = 5
+
+    local kDrag = false
+    local kStart, kPos
+    TopBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            kDrag = true
+            kStart = input.Position
+            kPos = GlowFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then kDrag = false end
+            end)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if kDrag and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - kStart
+            GlowFrame.Position = UDim2.new(kPos.X.Scale, kPos.X.Offset + delta.X, kPos.Y.Scale, kPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    GlowFrame.Size = UDim2.new(0, 0, 0, 0)
+    GlowFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    PlayTween(Backdrop, {BackgroundTransparency = 0.5}, 0.3)
+    PlayTween(GlowFrame, {Size = UDim2.new(0, 420, 0, 340), Position = UDim2.new(0.5, -210, 0.5, -170)}, 0.4)
+
+    local function CloseKeyGui()
+        completed = true
+        PlayTween(Backdrop, {BackgroundTransparency = 1}, 0.3)
+        PlayTween(GlowFrame, {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0)}, 0.3)
+        task.wait(0.35)
+        KeyGui:Destroy()
+    end
+
+    local function ShakeWindow()
+        local origPos = GlowFrame.Position
+        for i = 1, 5 do
+            PlayTween(GlowFrame, {Position = origPos + UDim2.new(0, (i % 2 == 0 and -10 or 10), 0, 0)}, 0.04)
+            task.wait(0.04)
+        end
+        PlayTween(GlowFrame, {Position = origPos}, 0.04)
+    end
+
+    SubmitBtn.MouseButton1Click:Connect(function()
+        local enteredKey = InputBox.Text
+        local valid = false
+        for _, k in pairs(keys) do
+            if enteredKey == k then valid = true break end
+        end
+        if valid then
+            success = true
+            StatusLabel.Text = "✓ KEY ACCEPTED — LOADING..."
+            StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 120)
+            PlayTween(inputStroke, {Color = Color3.fromRGB(100, 255, 120)}, 0.2)
+            PlayTween(InputIcon, {TextColor3 = Color3.fromRGB(100, 255, 120)}, 0.2)
+            if saveKey and writefile then
+                pcall(writefile, fileName, enteredKey)
+            end
+            task.wait(0.8)
+            CloseKeyGui()
+        else
+            attemptCount = attemptCount + 1
+            if maxAttempts > 0 then
+                AttemptsLabel.Text = "// ATTEMPTS: " .. attemptCount .. "/" .. maxAttempts
+                if attemptCount >= maxAttempts then
+                    StatusLabel.Text = "✗ MAX ATTEMPTS REACHED"
+                    StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                    InputBox.TextEditable = false
+                    SubmitBtn.Active = false
+                    SubmitBtn.BackgroundColor3 = currentTheme.ToggleOff
+                    task.wait(2)
+                    CloseKeyGui()
+                    return
+                end
+            end
+            StatusLabel.Text = "✗ INVALID KEY — TRY AGAIN"
+            StatusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+            PlayTween(inputStroke, {Color = Color3.fromRGB(255, 80, 80)}, 0.2)
+            PlayTween(InputIcon, {TextColor3 = Color3.fromRGB(255, 80, 80)}, 0.2)
+            ShakeWindow()
+            task.delay(1.5, function()
+                if not completed then
+                    PlayTween(inputStroke, {Color = currentTheme.Stroke}, 0.3)
+                    PlayTween(InputIcon, {TextColor3 = currentTheme.DimText}, 0.3)
+                end
+            end)
+        end
+    end)
+
+    GetKeyBtn.MouseButton1Click:Connect(function()
+        if getKeyURL then
+            if setclipboard then
+                setclipboard(getKeyURL)
+                StatusLabel.Text = "✓ KEY LINK COPIED TO CLIPBOARD"
+                StatusLabel.TextColor3 = currentTheme.Accent
+            else
+                StatusLabel.Text = "// " .. getKeyURL
+                StatusLabel.TextColor3 = currentTheme.Accent
+            end
+        else
+            StatusLabel.Text = "// NO KEY URL PROVIDED"
+            StatusLabel.TextColor3 = currentTheme.DimText
+        end
+    end)
+
+    if CopyLinkBtn then
+        CopyLinkBtn.MouseButton1Click:Connect(function()
+            if setclipboard then
+                setclipboard(copyKeyURL)
+                StatusLabel.Text = "✓ LINK COPIED: " .. copyKeyURL
+                StatusLabel.TextColor3 = currentTheme.Accent
+            else
+                StatusLabel.Text = "// " .. copyKeyURL
+                StatusLabel.TextColor3 = currentTheme.Accent
+            end
+        end)
+    end
+
+    if DiscordBtn then
+        DiscordBtn.MouseButton1Click:Connect(function()
+            if setclipboard then
+                setclipboard(discordLink)
+                StatusLabel.Text = "✓ DISCORD LINK COPIED"
+                StatusLabel.TextColor3 = currentTheme.Accent
+            else
+                StatusLabel.Text = "// " .. discordLink
+                StatusLabel.TextColor3 = currentTheme.Accent
+            end
+        end)
+    end
+
+    CloseBtn.MouseButton1Click:Connect(function()
+        CloseKeyGui()
+    end)
+
+    InputBox.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            SubmitBtn.MouseButton1Click:Fire()
+        end
+    end)
+
+    while not completed do task.wait() end
+    return success
+end
+
 function Nebula:CreateWindow(config)
     config = config or {}
     local title = config.Title or "NEBULA // SYSTEM"
     local themeName = config.Theme or "Dark"
-    local sizeX = (config.Size and config.Size[1]) or 550
-    local sizeY = (config.Size and config.Size[2]) or 380
-    local minX = (config.MinSize and config.MinSize[1]) or 400
-    local minY = (config.MinSize and config.MinSize[2]) or 280
+    local sizeX = (config.Size and config.Size[1]) or 580
+    local sizeY = (config.Size and config.Size[2]) or 400
+    local minX = (config.MinSize and config.MinSize[1]) or 420
+    local minY = (config.MinSize and config.MinSize[2]) or 300
     local toggleKey = config.ToggleKey or Enum.KeyCode.RightShift
 
     local currentTheme = Themes[themeName] or Themes.Dark
@@ -201,17 +763,14 @@ function Nebula:CreateWindow(config)
     OpenButton.AutoButtonColor = false
     OpenButton.Visible = false
     OpenButton.ZIndex = 10
-
     local OpenCorner = Instance.new("UICorner")
     OpenCorner.CornerRadius = UDim.new(1, 0)
     OpenCorner.Parent = OpenButton
-
     local OpenStroke = Instance.new("UIStroke")
     OpenStroke.Color = currentTheme.Accent
     OpenStroke.Thickness = 1.5
     OpenStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     OpenStroke.Parent = OpenButton
-
     Window.OpenButton = OpenButton
     Window.OpenStroke = OpenStroke
 
@@ -268,86 +827,236 @@ function Nebula:CreateWindow(config)
     Window.MainFrame = MainFrame
     Window.MainStroke = mainStroke
 
+    local TopBar = Instance.new("Frame")
+    TopBar.Name = "TopBar"
+    TopBar.Parent = MainFrame
+    TopBar.Size = UDim2.new(1, 0, 0, 40)
+    TopBar.BackgroundColor3 = currentTheme.TopBar
+    TopBar.BorderSizePixel = 0
+    Window.TopBar = TopBar
+
+    local TopBarCornerFix = Instance.new("Frame")
+    TopBarCornerFix.Parent = TopBar
+    TopBarCornerFix.Size = UDim2.new(1, 0, 0, 10)
+    TopBarCornerFix.Position = UDim2.new(0, 0, 1, -10)
+    TopBarCornerFix.BackgroundColor3 = currentTheme.TopBar
+    TopBarCornerFix.BorderSizePixel = 0
+
+    local TopBarLine = Instance.new("Frame")
+    TopBarLine.Parent = MainFrame
+    TopBarLine.Size = UDim2.new(1, 0, 0, 1)
+    TopBarLine.Position = UDim2.new(0, 0, 0, 40)
+    TopBarLine.BackgroundColor3 = currentTheme.Stroke
+    TopBarLine.BorderSizePixel = 0
+    Window.TopBarLine = TopBarLine
+
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
     Sidebar.Parent = MainFrame
     Sidebar.BackgroundColor3 = currentTheme.Sidebar
-    Sidebar.Size = UDim2.new(0, 50, 1, 0)
-    local sidebarStroke = CreateStroke(Sidebar, currentTheme.Stroke, 1)
+    Sidebar.Position = UDim2.new(0, 0, 0, 41)
+    Sidebar.Size = UDim2.new(0, 150, 1, -41)
+    Sidebar.BorderSizePixel = 0
     Window.Sidebar = Sidebar
-    Window.SidebarStroke = sidebarStroke
 
-    local TabIndicator = Instance.new("Frame")
-    TabIndicator.Name = "TabIndicator"
-    TabIndicator.Parent = Sidebar
-    TabIndicator.BackgroundColor3 = currentTheme.Accent
-    TabIndicator.Position = UDim2.new(0, 0, 0, 60)
-    TabIndicator.Size = UDim2.new(0, 2, 0, 32)
-    Window.TabIndicator = TabIndicator
+    local SidebarLine = Instance.new("Frame")
+    SidebarLine.Parent = MainFrame
+    SidebarLine.Size = UDim2.new(0, 1, 1, -41)
+    SidebarLine.Position = UDim2.new(0, 150, 0, 41)
+    SidebarLine.BackgroundColor3 = currentTheme.Stroke
+    SidebarLine.BorderSizePixel = 0
+    Window.SidebarLine = SidebarLine
+
+    local SidebarList = Instance.new("ScrollingFrame")
+    SidebarList.Parent = Sidebar
+    SidebarList.Size = UDim2.new(1, 0, 1, -65)
+    SidebarList.Position = UDim2.new(0, 0, 0, 10)
+    SidebarList.BackgroundTransparency = 1
+    SidebarList.BorderSizePixel = 0
+    SidebarList.ScrollBarThickness = 0
+    SidebarList.CanvasSize = UDim2.new(0, 0, 0, 0)
+    SidebarList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+    local sidebarLayout = Instance.new("UIListLayout")
+    sidebarLayout.Parent = SidebarList
+    sidebarLayout.Padding = UDim.new(0, 4)
+    sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    CreatePadding(SidebarList, 0, 0, 8, 8)
+
+    local SidebarFooter = Instance.new("Frame")
+    SidebarFooter.Parent = Sidebar
+    SidebarFooter.Size = UDim2.new(1, 0, 0, 55)
+    SidebarFooter.Position = UDim2.new(0, 0, 1, -55)
+    SidebarFooter.BackgroundTransparency = 1
+
+    local FooterLine = Instance.new("Frame")
+    FooterLine.Parent = SidebarFooter
+    FooterLine.Size = UDim2.new(1, -16, 0, 1)
+    FooterLine.Position = UDim2.new(0, 8, 0, 0)
+    FooterLine.BackgroundColor3 = currentTheme.Stroke
+    FooterLine.BorderSizePixel = 0
+
+    local FooterAvatarHolder = Instance.new("Frame")
+    FooterAvatarHolder.Parent = SidebarFooter
+    FooterAvatarHolder.Size = UDim2.new(0, 32, 0, 32)
+    FooterAvatarHolder.Position = UDim2.new(0, 10, 0, 12)
+    FooterAvatarHolder.BackgroundTransparency = 1
+
+    local FooterAvatar = Instance.new("ImageLabel")
+    FooterAvatar.Parent = FooterAvatarHolder
+    FooterAvatar.Size = UDim2.new(1, 0, 1, 0)
+    FooterAvatar.BackgroundColor3 = currentTheme.Main
+    FooterAvatar.Image = IsAvatarReady and AvatarContent or ""
+    CreateCorner(FooterAvatar, 16)
+    local footerAvStroke = CreateStroke(FooterAvatar, currentTheme.Accent, 1.5)
+
+    local FooterAvatarBtn = Instance.new("TextButton")
+    FooterAvatarBtn.Parent = FooterAvatarHolder
+    FooterAvatarBtn.Size = UDim2.new(1, 0, 1, 0)
+    FooterAvatarBtn.BackgroundTransparency = 1
+    FooterAvatarBtn.Text = ""
+    FooterAvatarBtn.ZIndex = 5
+
+    local footerClickCount = 0
+    local FooterAngrySpeech = Instance.new("TextLabel")
+    FooterAngrySpeech.Parent = SidebarFooter
+    FooterAngrySpeech.Size = UDim2.new(1, -10, 0, 12)
+    FooterAngrySpeech.Position = UDim2.new(0, 5, 1, -12)
+    FooterAngrySpeech.BackgroundTransparency = 1
+    FooterAngrySpeech.Text = ""
+    FooterAngrySpeech.Font = Enum.Font.Code
+    FooterAngrySpeech.TextSize = 8
+    FooterAngrySpeech.TextColor3 = Color3.fromRGB(255, 80, 80)
+    FooterAngrySpeech.TextWrapped = true
+    FooterAngrySpeech.TextXAlignment = Enum.TextXAlignment.Left
+
+    FooterAvatarBtn.MouseButton1Click:Connect(function()
+        footerClickCount = footerClickCount + 1
+        if footerClickCount <= 3 then
+            local spin = TweenService:Create(FooterAvatar, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {Rotation = FooterAvatar.Rotation + 360})
+            spin:Play()
+            FooterAngrySpeech.Text = ""
+        elseif footerClickCount <= 8 then
+            local spin = TweenService:Create(FooterAvatar, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Rotation = FooterAvatar.Rotation + 720})
+            spin:Play()
+            footerAvStroke.Color = Color3.fromRGB(255, 150, 50)
+            FooterAngrySpeech.Text = AngryPhrases[math.random(1, #AngryPhrases)]
+            FooterAngrySpeech.TextColor3 = Color3.fromRGB(255, 150, 50)
+            local origPos = FooterAvatarHolder.Position
+            for i = 1, 3 do
+                PlayTween(FooterAvatarHolder, {Position = origPos + UDim2.new(0, (i % 2 == 0 and -4 or 4), 0, 0)}, 0.03)
+                task.wait(0.03)
+            end
+            PlayTween(FooterAvatarHolder, {Position = origPos}, 0.03)
+        elseif footerClickCount <= 12 then
+            local spin = TweenService:Create(FooterAvatar, TweenInfo.new(0.1, Enum.EasingStyle.Quad), {Rotation = FooterAvatar.Rotation + 1440})
+            spin:Play()
+            footerAvStroke.Color = Color3.fromRGB(255, 0, 0)
+            FooterAngrySpeech.Text = AngryPhrases[math.random(1, #AngryPhrases)]:upper() .. "!!!"
+            FooterAngrySpeech.TextColor3 = Color3.fromRGB(255, 50, 50)
+            local origPos = FooterAvatarHolder.Position
+            for i = 1, 5 do
+                PlayTween(FooterAvatarHolder, {Position = origPos + UDim2.new(0, (i % 2 == 0 and -6 or 6), 0, (i % 2 == 0 and -2 or 2))}, 0.03)
+                task.wait(0.03)
+            end
+            PlayTween(FooterAvatarHolder, {Position = origPos}, 0.03)
+        else
+            FooterAngrySpeech.Text = "💀 im done"
+            FooterAngrySpeech.TextColor3 = currentTheme.DimText
+            footerAvStroke.Color = Color3.fromRGB(80, 80, 80)
+            PlayTween(FooterAvatar, {ImageTransparency = 0.5}, 0.3)
+            task.delay(1.5, function()
+                PlayTween(FooterAvatar, {ImageTransparency = 0, Rotation = 0}, 0.5)
+                footerAvStroke.Color = currentTheme.Accent
+                FooterAngrySpeech.Text = ""
+                footerClickCount = 0
+            end)
+        end
+    end)
+
+    local FooterName = Instance.new("TextLabel")
+    FooterName.Parent = SidebarFooter
+    FooterName.Size = UDim2.new(1, -55, 0, 16)
+    FooterName.Position = UDim2.new(0, 48, 0, 10)
+    FooterName.BackgroundTransparency = 1
+    FooterName.Text = LocalPlayer.DisplayName
+    FooterName.Font = Enum.Font.GothamBold
+    FooterName.TextSize = 11
+    FooterName.TextColor3 = currentTheme.Text
+    FooterName.TextXAlignment = Enum.TextXAlignment.Left
+    FooterName.TextTruncate = Enum.TextTruncate.AtEnd
+
+    local FooterTag = Instance.new("TextLabel")
+    FooterTag.Parent = SidebarFooter
+    FooterTag.Size = UDim2.new(1, -55, 0, 14)
+    FooterTag.Position = UDim2.new(0, 48, 0, 26)
+    FooterTag.BackgroundTransparency = 1
+    FooterTag.Text = "@" .. LocalPlayer.Name
+    FooterTag.Font = Enum.Font.Code
+    FooterTag.TextSize = 9
+    FooterTag.TextColor3 = currentTheme.DimText
+    FooterTag.TextXAlignment = Enum.TextXAlignment.Left
+    FooterTag.TextTruncate = Enum.TextTruncate.AtEnd
 
     local Logo = Instance.new("TextLabel")
     Logo.Name = "Logo"
-    Logo.Parent = MainFrame
+    Logo.Parent = TopBar
     Logo.Text = title
     Logo.Font = Enum.Font.Code
-    Logo.TextSize = 16
+    Logo.TextSize = 14
     Logo.TextColor3 = currentTheme.Accent
-    Logo.Position = UDim2.new(0, 65, 0, 0)
-    Logo.Size = UDim2.new(0, 300, 0, 50)
+    Logo.Position = UDim2.new(0, 15, 0, 0)
+    Logo.Size = UDim2.new(0, 300, 1, 0)
     Logo.BackgroundTransparency = 1
     Logo.TextXAlignment = Enum.TextXAlignment.Left
     Window.Logo = Logo
 
+    local VersionLabel = Instance.new("TextLabel")
+    VersionLabel.Parent = TopBar
+    VersionLabel.Size = UDim2.new(0, 40, 1, 0)
+    VersionLabel.Position = UDim2.new(1, -120, 0, 0)
+    VersionLabel.BackgroundTransparency = 1
+    VersionLabel.Text = "v2.1"
+    VersionLabel.Font = Enum.Font.Code
+    VersionLabel.TextSize = 10
+    VersionLabel.TextColor3 = currentTheme.DimText
+    VersionLabel.TextXAlignment = Enum.TextXAlignment.Right
+
     local CloseBtn = Instance.new("TextButton")
-    CloseBtn.Name = "CloseBtn"
-    CloseBtn.Parent = MainFrame
+    CloseBtn.Parent = TopBar
     CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-    CloseBtn.Position = UDim2.new(1, -40, 0, 10)
+    CloseBtn.Position = UDim2.new(1, -35, 0, 5)
     CloseBtn.BackgroundTransparency = 1
     CloseBtn.Text = "×"
     CloseBtn.Font = Enum.Font.Code
     CloseBtn.TextSize = 22
     CloseBtn.TextColor3 = currentTheme.DimText
-    CloseBtn.MouseEnter:Connect(function()
-        PlayTween(CloseBtn, {TextColor3 = Color3.fromRGB(255, 80, 80)}, 0.2)
-    end)
-    CloseBtn.MouseLeave:Connect(function()
-        PlayTween(CloseBtn, {TextColor3 = currentTheme.DimText}, 0.2)
-    end)
-    CloseBtn.MouseButton1Click:Connect(function()
-        Window:Toggle()
-    end)
+    CloseBtn.MouseEnter:Connect(function() PlayTween(CloseBtn, {TextColor3 = Color3.fromRGB(255, 80, 80)}, 0.2) end)
+    CloseBtn.MouseLeave:Connect(function() PlayTween(CloseBtn, {TextColor3 = currentTheme.DimText}, 0.2) end)
+    CloseBtn.MouseButton1Click:Connect(function() Window:Toggle() end)
 
     local MinBtn = Instance.new("TextButton")
-    MinBtn.Name = "MinBtn"
-    MinBtn.Parent = MainFrame
+    MinBtn.Parent = TopBar
     MinBtn.Size = UDim2.new(0, 30, 0, 30)
-    MinBtn.Position = UDim2.new(1, -70, 0, 10)
+    MinBtn.Position = UDim2.new(1, -65, 0, 5)
     MinBtn.BackgroundTransparency = 1
     MinBtn.Text = "—"
     MinBtn.Font = Enum.Font.Code
     MinBtn.TextSize = 16
     MinBtn.TextColor3 = currentTheme.DimText
-    MinBtn.MouseEnter:Connect(function()
-        PlayTween(MinBtn, {TextColor3 = currentTheme.Accent}, 0.2)
-    end)
-    MinBtn.MouseLeave:Connect(function()
-        PlayTween(MinBtn, {TextColor3 = currentTheme.DimText}, 0.2)
-    end)
-    MinBtn.MouseButton1Click:Connect(function()
-        Window:Toggle()
-    end)
+    MinBtn.MouseEnter:Connect(function() PlayTween(MinBtn, {TextColor3 = currentTheme.Accent}, 0.2) end)
+    MinBtn.MouseLeave:Connect(function() PlayTween(MinBtn, {TextColor3 = currentTheme.DimText}, 0.2) end)
+    MinBtn.MouseButton1Click:Connect(function() Window:Toggle() end)
 
     local PageContainer = Instance.new("Frame")
     PageContainer.Name = "PageContainer"
     PageContainer.Parent = MainFrame
     PageContainer.BackgroundTransparency = 1
-    PageContainer.Position = UDim2.new(0, 60, 0, 50)
-    PageContainer.Size = UDim2.new(1, -72, 1, -60)
+    PageContainer.Position = UDim2.new(0, 151, 0, 41)
+    PageContainer.Size = UDim2.new(1, -151, 1, -41)
     Window.PageContainer = PageContainer
 
     local ResizeBtn = Instance.new("TextButton")
-    ResizeBtn.Name = "ResizeBtn"
     ResizeBtn.Parent = MainFrame
     ResizeBtn.Size = UDim2.new(0, 20, 0, 20)
     ResizeBtn.Position = UDim2.new(1, -20, 1, -20)
@@ -374,18 +1083,14 @@ function Nebula:CreateWindow(config)
 
     local isDragging = false
     local dragStart, startPos
-    MainFrame.InputBegan:Connect(function(input)
+    TopBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 and not isResizing then
-            local mouseY = input.Position.Y
-            local frameY = MainFrame.AbsolutePosition.Y
-            if mouseY - frameY <= 50 then
-                isDragging = true
-                dragStart = input.Position
-                startPos = GlowFrame.Position
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then isDragging = false end
-                end)
-            end
+            isDragging = true
+            dragStart = input.Position
+            startPos = GlowFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then isDragging = false end
+            end)
         end
     end)
     UserInputService.InputChanged:Connect(function(input)
@@ -400,8 +1105,6 @@ function Nebula:CreateWindow(config)
             Window:Toggle()
         end
     end)
-
-    local tabYOffset = 60
 
     function Window:Toggle()
         Window.Visible = not Window.Visible
@@ -437,16 +1140,24 @@ function Nebula:CreateWindow(config)
         if not Themes[name] then return end
         currentTheme = Themes[name]
         Window.CurrentThemeName = name
-        local d = 0.5
+        local d = 0.4
         PlayTween(MainFrame, {BackgroundColor3 = currentTheme.Main}, d)
         PlayTween(Sidebar, {BackgroundColor3 = currentTheme.Sidebar}, d)
+        PlayTween(TopBar, {BackgroundColor3 = currentTheme.TopBar}, d)
+        PlayTween(TopBarCornerFix, {BackgroundColor3 = currentTheme.TopBar}, d)
+        PlayTween(TopBarLine, {BackgroundColor3 = currentTheme.Stroke}, d)
+        PlayTween(SidebarLine, {BackgroundColor3 = currentTheme.Stroke}, d)
+        PlayTween(FooterLine, {BackgroundColor3 = currentTheme.Stroke}, d)
         PlayTween(mainStroke, {Color = currentTheme.Stroke}, d)
-        PlayTween(sidebarStroke, {Color = currentTheme.Stroke}, d)
-        PlayTween(TabIndicator, {BackgroundColor3 = currentTheme.Accent}, d)
         PlayTween(Logo, {TextColor3 = currentTheme.Accent}, d)
+        PlayTween(VersionLabel, {TextColor3 = currentTheme.DimText}, d)
         PlayTween(GlowFrame, {BackgroundColor3 = currentTheme.Glow}, d)
         PlayTween(OpenButton, {BackgroundColor3 = currentTheme.Main, TextColor3 = currentTheme.Accent}, d)
         PlayTween(OpenStroke, {Color = currentTheme.Accent}, d)
+        PlayTween(FooterAvatar, {BackgroundColor3 = currentTheme.Main}, d)
+        PlayTween(footerAvStroke, {Color = currentTheme.Accent}, d)
+        PlayTween(FooterName, {TextColor3 = currentTheme.Text}, d)
+        PlayTween(FooterTag, {TextColor3 = currentTheme.DimText}, d)
         for _, obj in pairs(Window.ThemeObjects) do
             if obj.Instance and obj.Instance.Parent then
                 local props = {}
@@ -471,17 +1182,55 @@ function Nebula:CreateWindow(config)
         cfg = cfg or {}
         local text = cfg.Text or "Notification"
         local duration = cfg.Duration or 3
+        local nType = cfg.Type or "info"
+        local typeColors = {
+            info = currentTheme.Accent,
+            success = Color3.fromRGB(100, 255, 120),
+            warning = Color3.fromRGB(255, 200, 50),
+            error = Color3.fromRGB(255, 80, 80),
+        }
+        local accentColor = typeColors[nType] or currentTheme.Accent
+        local typeIcons = {
+            info = "ℹ",
+            success = "✓",
+            warning = "⚠",
+            error = "✗",
+        }
+        local icon = typeIcons[nType] or "ℹ"
+
         local notif = Instance.new("Frame")
         notif.Parent = ScreenGui
-        notif.Size = UDim2.new(0, 280, 0, 40)
-        notif.Position = UDim2.new(1, 0, 1, -55)
+        notif.Size = UDim2.new(0, 300, 0, 50)
+        notif.Position = UDim2.new(1, 0, 1, -65)
         notif.BackgroundColor3 = currentTheme.Card
+        notif.ZIndex = 20
         CreateCorner(notif, 6)
-        CreateStroke(notif, currentTheme.Accent, 1)
+        CreateStroke(notif, accentColor, 1)
+
+        local accentBar = Instance.new("Frame")
+        accentBar.Parent = notif
+        accentBar.Size = UDim2.new(0, 3, 1, -10)
+        accentBar.Position = UDim2.new(0, 5, 0, 5)
+        accentBar.BackgroundColor3 = accentColor
+        accentBar.BorderSizePixel = 0
+        accentBar.ZIndex = 21
+        CreateCorner(accentBar, 2)
+
+        local nIcon = Instance.new("TextLabel")
+        nIcon.Parent = notif
+        nIcon.Size = UDim2.new(0, 20, 1, 0)
+        nIcon.Position = UDim2.new(0, 14, 0, 0)
+        nIcon.BackgroundTransparency = 1
+        nIcon.Text = icon
+        nIcon.Font = Enum.Font.Code
+        nIcon.TextSize = 16
+        nIcon.TextColor3 = accentColor
+        nIcon.ZIndex = 21
+
         local nLabel = Instance.new("TextLabel")
         nLabel.Parent = notif
-        nLabel.Size = UDim2.new(1, -16, 1, 0)
-        nLabel.Position = UDim2.new(0, 8, 0, 0)
+        nLabel.Size = UDim2.new(1, -45, 1, 0)
+        nLabel.Position = UDim2.new(0, 38, 0, 0)
         nLabel.BackgroundTransparency = 1
         nLabel.Font = Enum.Font.Code
         nLabel.TextSize = 12
@@ -489,9 +1238,22 @@ function Nebula:CreateWindow(config)
         nLabel.TextColor3 = currentTheme.Text
         nLabel.TextXAlignment = Enum.TextXAlignment.Left
         nLabel.TextWrapped = true
-        PlayTween(notif, {Position = UDim2.new(1, -295, 1, -55)}, 0.4)
+        nLabel.ZIndex = 21
+
+        local progressBar = Instance.new("Frame")
+        progressBar.Parent = notif
+        progressBar.Size = UDim2.new(1, -10, 0, 2)
+        progressBar.Position = UDim2.new(0, 5, 1, -5)
+        progressBar.BackgroundColor3 = accentColor
+        progressBar.BorderSizePixel = 0
+        progressBar.ZIndex = 21
+        CreateCorner(progressBar, 1)
+
+        PlayTween(notif, {Position = UDim2.new(1, -315, 1, -65)}, 0.4)
+        PlayTween(progressBar, {Size = UDim2.new(0, 0, 0, 2)}, duration)
+
         task.delay(duration, function()
-            PlayTween(notif, {Position = UDim2.new(1, 10, 1, -55)}, 0.4)
+            PlayTween(notif, {Position = UDim2.new(1, 10, 1, -65)}, 0.4)
             task.delay(0.45, function() notif:Destroy() end)
         end)
     end
@@ -509,7 +1271,7 @@ function Nebula:CreateWindow(config)
         Page.Parent = PageContainer
         Page.BackgroundTransparency = 1
         Page.Size = UDim2.new(1, 0, 1, 0)
-        Page.ScrollBarThickness = 2
+        Page.ScrollBarThickness = 3
         Page.ScrollBarImageColor3 = currentTheme.Accent
         Page.BorderSizePixel = 0
         Page.Visible = false
@@ -520,66 +1282,195 @@ function Nebula:CreateWindow(config)
         pageLayout.Parent = Page
         pageLayout.Padding = UDim.new(0, 8)
         pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        CreatePadding(Page, 5, 5, 10, 10)
+        CreatePadding(Page, 12, 12, 15, 15)
         Tab.Page = Page
 
-        local yPos = tabYOffset
-        tabYOffset = tabYOffset + 40
-
         local sideBtn = Instance.new("TextButton")
-        sideBtn.Parent = Sidebar
-        sideBtn.Size = UDim2.new(0, 32, 0, 32)
-        sideBtn.Position = UDim2.new(0.5, -16, 0, yPos)
-        sideBtn.BackgroundColor3 = currentTheme.Main
-        sideBtn.BackgroundTransparency = 0.96
-        sideBtn.Text = tabIcon
-        sideBtn.Font = Enum.Font.Code
-        sideBtn.TextColor3 = currentTheme.DimText
-        sideBtn.TextSize = 14
+        sideBtn.Parent = SidebarList
+        sideBtn.Size = UDim2.new(1, 0, 0, 34)
+        sideBtn.BackgroundColor3 = currentTheme.Sidebar
+        sideBtn.BackgroundTransparency = 1
+        sideBtn.Text = ""
+        sideBtn.AutoButtonColor = false
         CreateCorner(sideBtn, 6)
+
+        local activeIndicator = Instance.new("Frame")
+        activeIndicator.Parent = sideBtn
+        activeIndicator.Size = UDim2.new(0, 3, 0, 18)
+        activeIndicator.Position = UDim2.new(0, 0, 0.5, -9)
+        activeIndicator.BackgroundColor3 = currentTheme.Accent
+        activeIndicator.BorderSizePixel = 0
+        activeIndicator.BackgroundTransparency = 1
+        CreateCorner(activeIndicator, 2)
+
+        local tabIconLabel = Instance.new("TextLabel")
+        tabIconLabel.Parent = sideBtn
+        tabIconLabel.Size = UDim2.new(0, 20, 1, 0)
+        tabIconLabel.Position = UDim2.new(0, 12, 0, 0)
+        tabIconLabel.BackgroundTransparency = 1
+        tabIconLabel.Text = tabIcon
+        tabIconLabel.Font = Enum.Font.Code
+        tabIconLabel.TextSize = 14
+        tabIconLabel.TextColor3 = currentTheme.DimText
+        tabIconLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+        local tabNameLabel = Instance.new("TextLabel")
+        tabNameLabel.Parent = sideBtn
+        tabNameLabel.Size = UDim2.new(1, -40, 1, 0)
+        tabNameLabel.Position = UDim2.new(0, 38, 0, 0)
+        tabNameLabel.BackgroundTransparency = 1
+        tabNameLabel.Text = tabName
+        tabNameLabel.Font = Enum.Font.Code
+        tabNameLabel.TextSize = 13
+        tabNameLabel.TextColor3 = currentTheme.DimText
+        tabNameLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+        Tab.SideBtn = sideBtn
+        Tab.IconLabel = tabIconLabel
+        Tab.NameLabel = tabNameLabel
+        Tab.Indicator = activeIndicator
+
         sideBtn.MouseEnter:Connect(function()
-            PlayTween(sideBtn, {BackgroundTransparency = 0.85}, 0.2)
+            if not Tab.Active then
+                PlayTween(sideBtn, {BackgroundTransparency = 0.9, BackgroundColor3 = currentTheme.Hover}, 0.2)
+                PlayTween(tabIconLabel, {TextColor3 = currentTheme.Text}, 0.2)
+                PlayTween(tabNameLabel, {TextColor3 = currentTheme.Text}, 0.2)
+            end
         end)
         sideBtn.MouseLeave:Connect(function()
-            PlayTween(sideBtn, {BackgroundTransparency = 0.96}, 0.2)
-        end)
-        sideBtn.MouseButton1Click:Connect(function()
-            PlayTween(TabIndicator, {Position = UDim2.new(0, 0, 0, yPos)}, 0.3)
-            for _, t in pairs(Window.Tabs) do t.Page.Visible = false end
-            Page.Visible = true
+            if not Tab.Active then
+                PlayTween(sideBtn, {BackgroundTransparency = 1}, 0.2)
+                PlayTween(tabIconLabel, {TextColor3 = currentTheme.DimText}, 0.2)
+                PlayTween(tabNameLabel, {TextColor3 = currentTheme.DimText}, 0.2)
+            end
         end)
 
-        if #Window.Tabs == 0 then
+        local function ActivateTab()
+            for _, t in pairs(Window.Tabs) do
+                t.Active = false
+                t.Page.Visible = false
+                PlayTween(t.SideBtn, {BackgroundTransparency = 1}, 0.2)
+                PlayTween(t.IconLabel, {TextColor3 = currentTheme.DimText}, 0.2)
+                PlayTween(t.NameLabel, {TextColor3 = currentTheme.DimText}, 0.2)
+                PlayTween(t.Indicator, {BackgroundTransparency = 1}, 0.2)
+            end
+            Tab.Active = true
             Page.Visible = true
-            TabIndicator.Position = UDim2.new(0, 0, 0, yPos)
+            PlayTween(sideBtn, {BackgroundTransparency = 0, BackgroundColor3 = currentTheme.TabActive}, 0.2)
+            PlayTween(tabIconLabel, {TextColor3 = currentTheme.Accent}, 0.2)
+            PlayTween(tabNameLabel, {TextColor3 = currentTheme.Text}, 0.2)
+            PlayTween(activeIndicator, {BackgroundTransparency = 0}, 0.2)
+        end
+
+        sideBtn.MouseButton1Click:Connect(ActivateTab)
+
+        if #Window.Tabs == 0 then
+            Tab.Active = true
+            Page.Visible = true
+            sideBtn.BackgroundTransparency = 0
+            sideBtn.BackgroundColor3 = currentTheme.TabActive
+            tabIconLabel.TextColor3 = currentTheme.Accent
+            tabNameLabel.TextColor3 = currentTheme.Text
+            activeIndicator.BackgroundTransparency = 0
         end
 
         table.insert(Window.Tabs, Tab)
         table.insert(Window.TabButtons, sideBtn)
-        Window:RegisterThemeObject(sideBtn, {BackgroundColor3 = "Main", TextColor3 = "DimText"}, {})
 
         function Tab:AddWelcomeCard()
             local card = Instance.new("Frame")
-            card.Name = "WelcomeCard"
             card.Parent = Page
-            card.Size = UDim2.new(1, 0, 0, 70)
+            card.Size = UDim2.new(1, 0, 0, 80)
             card.BackgroundColor3 = currentTheme.Card
-            CreateCorner(card, 6)
+            CreateCorner(card, 8)
             local cs = CreateStroke(card, currentTheme.Stroke, 1)
 
+            local cardGrad = Instance.new("UIGradient")
+            cardGrad.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+                ColorSequenceKeypoint.new(1, Color3.new(0.9, 0.9, 0.95))
+            })
+            cardGrad.Rotation = 45
+            cardGrad.Parent = card
+
+            local avatarFrame = Instance.new("Frame")
+            avatarFrame.Parent = card
+            avatarFrame.Size = UDim2.new(0, 55, 0, 55)
+            avatarFrame.Position = UDim2.new(0, 12, 0, 12)
+            avatarFrame.BackgroundTransparency = 1
+
             local avatar = Instance.new("ImageLabel")
-            avatar.Parent = card
-            avatar.Size = UDim2.new(0, 50, 0, 50)
-            avatar.Position = UDim2.new(0, 10, 0, 10)
+            avatar.Parent = avatarFrame
+            avatar.Size = UDim2.new(1, 0, 1, 0)
             avatar.BackgroundColor3 = currentTheme.Main
             avatar.Image = IsAvatarReady and AvatarContent or ""
-            CreateCorner(avatar, 25)
+            CreateCorner(avatar, 27)
             local avStroke = CreateStroke(avatar, currentTheme.Accent, 2)
+
+            local avatarClickBtn = Instance.new("TextButton")
+            avatarClickBtn.Parent = avatarFrame
+            avatarClickBtn.Size = UDim2.new(1, 0, 1, 0)
+            avatarClickBtn.BackgroundTransparency = 1
+            avatarClickBtn.Text = ""
+            avatarClickBtn.ZIndex = 5
+
+            local wcClickCount = 0
+            local wcAngryLabel = Instance.new("TextLabel")
+            wcAngryLabel.Parent = card
+            wcAngryLabel.Size = UDim2.new(1, -80, 0, 12)
+            wcAngryLabel.Position = UDim2.new(0, 75, 0, 58)
+            wcAngryLabel.BackgroundTransparency = 1
+            wcAngryLabel.Text = ""
+            wcAngryLabel.Font = Enum.Font.Code
+            wcAngryLabel.TextSize = 9
+            wcAngryLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+            wcAngryLabel.TextXAlignment = Enum.TextXAlignment.Left
+            wcAngryLabel.TextWrapped = true
+
+            avatarClickBtn.MouseButton1Click:Connect(function()
+                wcClickCount = wcClickCount + 1
+                if wcClickCount <= 3 then
+                    TweenService:Create(avatar, TweenInfo.new(0.4), {Rotation = avatar.Rotation + 360}):Play()
+                    wcAngryLabel.Text = ""
+                elseif wcClickCount <= 7 then
+                    TweenService:Create(avatar, TweenInfo.new(0.2), {Rotation = avatar.Rotation + 720}):Play()
+                    avStroke.Color = Color3.fromRGB(255, 150, 50)
+                    wcAngryLabel.Text = AngryPhrases[math.random(1, #AngryPhrases)]
+                    wcAngryLabel.TextColor3 = Color3.fromRGB(255, 150, 50)
+                    local orig = avatarFrame.Position
+                    for i = 1, 3 do
+                        PlayTween(avatarFrame, {Position = orig + UDim2.new(0, (i % 2 == 0 and -4 or 4), 0, 0)}, 0.03)
+                        task.wait(0.03)
+                    end
+                    PlayTween(avatarFrame, {Position = orig}, 0.03)
+                elseif wcClickCount <= 11 then
+                    TweenService:Create(avatar, TweenInfo.new(0.1), {Rotation = avatar.Rotation + 1440}):Play()
+                    avStroke.Color = Color3.fromRGB(255, 0, 0)
+                    wcAngryLabel.Text = AngryPhrases[math.random(1, #AngryPhrases)]:upper() .. "!!!"
+                    wcAngryLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                    local orig = avatarFrame.Position
+                    for i = 1, 5 do
+                        PlayTween(avatarFrame, {Position = orig + UDim2.new(0, (i % 2 == 0 and -8 or 8), 0, (i % 2 == 0 and -3 or 3))}, 0.03)
+                        task.wait(0.03)
+                    end
+                    PlayTween(avatarFrame, {Position = orig}, 0.03)
+                else
+                    wcAngryLabel.Text = "💀"
+                    avStroke.Color = Color3.fromRGB(80, 80, 80)
+                    PlayTween(avatar, {ImageTransparency = 0.5}, 0.3)
+                    task.delay(1.5, function()
+                        PlayTween(avatar, {ImageTransparency = 0, Rotation = 0}, 0.5)
+                        avStroke.Color = currentTheme.Accent
+                        wcAngryLabel.Text = ""
+                        wcClickCount = 0
+                    end)
+                end
+            end)
 
             local greeting = Instance.new("TextLabel")
             greeting.Parent = card
-            greeting.Size = UDim2.new(1, -75, 0, 25)
-            greeting.Position = UDim2.new(0, 70, 0, 12)
+            greeting.Size = UDim2.new(1, -80, 0, 22)
+            greeting.Position = UDim2.new(0, 75, 0, 14)
             greeting.BackgroundTransparency = 1
             greeting.Font = Enum.Font.Code
             greeting.TextSize = 14
@@ -589,12 +1480,12 @@ function Nebula:CreateWindow(config)
 
             local playerName = Instance.new("TextLabel")
             playerName.Parent = card
-            playerName.Size = UDim2.new(1, -75, 0, 20)
-            playerName.Position = UDim2.new(0, 70, 0, 34)
+            playerName.Size = UDim2.new(1, -80, 0, 18)
+            playerName.Position = UDim2.new(0, 75, 0, 36)
             playerName.BackgroundTransparency = 1
             playerName.Font = Enum.Font.GothamBold
             playerName.TextSize = 13
-            playerName.Text = LocalPlayer.DisplayName
+            playerName.Text = LocalPlayer.DisplayName .. " (@" .. LocalPlayer.Name .. ")"
             playerName.TextColor3 = currentTheme.Text
             playerName.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -610,9 +1501,8 @@ function Nebula:CreateWindow(config)
         function Tab:AddLabel(cfg)
             cfg = cfg or {}
             local label = Instance.new("TextLabel")
-            label.Name = "Label"
             label.Parent = Page
-            label.Size = UDim2.new(1, 0, 0, 25)
+            label.Size = UDim2.new(1, 0, 0, 22)
             label.BackgroundTransparency = 1
             label.Font = Enum.Font.Code
             label.TextSize = 13
@@ -625,10 +1515,58 @@ function Nebula:CreateWindow(config)
             return LabelAPI
         end
 
+        function Tab:AddParagraph(cfg)
+            cfg = cfg or {}
+            local holder = Instance.new("Frame")
+            holder.Parent = Page
+            holder.Size = UDim2.new(1, 0, 0, 0)
+            holder.BackgroundColor3 = currentTheme.Card
+            holder.AutomaticSize = Enum.AutomaticSize.Y
+            CreateCorner(holder, 6)
+            local hs = CreateStroke(holder, currentTheme.Stroke, 1)
+
+            local titleLabel = Instance.new("TextLabel")
+            titleLabel.Parent = holder
+            titleLabel.Size = UDim2.new(1, -20, 0, 24)
+            titleLabel.Position = UDim2.new(0, 10, 0, 5)
+            titleLabel.BackgroundTransparency = 1
+            titleLabel.Font = Enum.Font.GothamBold
+            titleLabel.TextSize = 13
+            titleLabel.Text = cfg.Title or "Title"
+            titleLabel.TextColor3 = currentTheme.Accent
+            titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+            local contentLabel = Instance.new("TextLabel")
+            contentLabel.Parent = holder
+            contentLabel.Size = UDim2.new(1, -20, 0, 0)
+            contentLabel.Position = UDim2.new(0, 10, 0, 28)
+            contentLabel.BackgroundTransparency = 1
+            contentLabel.Font = Enum.Font.Code
+            contentLabel.TextSize = 12
+            contentLabel.Text = cfg.Content or "Content"
+            contentLabel.TextColor3 = currentTheme.Text
+            contentLabel.TextXAlignment = Enum.TextXAlignment.Left
+            contentLabel.TextWrapped = true
+            contentLabel.AutomaticSize = Enum.AutomaticSize.Y
+
+            local padding = Instance.new("UIPadding")
+            padding.PaddingBottom = UDim.new(0, 10)
+            padding.Parent = holder
+
+            Window:RegisterThemeObject(holder, {BackgroundColor3 = "Card"}, {})
+            Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
+            Window:RegisterThemeObject(titleLabel, {TextColor3 = "Accent"}, {})
+            Window:RegisterThemeObject(contentLabel, {TextColor3 = "Text"}, {})
+
+            local ParagraphAPI = {}
+            function ParagraphAPI:SetTitle(txt) titleLabel.Text = txt end
+            function ParagraphAPI:SetContent(txt) contentLabel.Text = txt end
+            return ParagraphAPI
+        end
+
         function Tab:AddButton(cfg)
             cfg = cfg or {}
             local holder = Instance.new("Frame")
-            holder.Name = "ButtonHolder"
             holder.Parent = Page
             holder.Size = UDim2.new(1, 0, 0, 36)
             holder.BackgroundColor3 = currentTheme.ElementBg
@@ -636,7 +1574,6 @@ function Nebula:CreateWindow(config)
             local hs = CreateStroke(holder, currentTheme.Stroke, 1)
 
             local btn = Instance.new("TextButton")
-            btn.Name = "Button"
             btn.Parent = holder
             btn.Size = UDim2.new(1, 0, 1, 0)
             btn.BackgroundTransparency = 1
@@ -645,17 +1582,11 @@ function Nebula:CreateWindow(config)
             btn.Text = cfg.Name or "Button"
             btn.TextColor3 = currentTheme.Text
 
-            btn.MouseEnter:Connect(function()
-                PlayTween(holder, {BackgroundColor3 = currentTheme.Hover}, 0.2)
-            end)
-            btn.MouseLeave:Connect(function()
-                PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.2)
-            end)
+            btn.MouseEnter:Connect(function() PlayTween(holder, {BackgroundColor3 = currentTheme.Hover}, 0.2) end)
+            btn.MouseLeave:Connect(function() PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.2) end)
             btn.MouseButton1Click:Connect(function()
                 PlayTween(holder, {BackgroundColor3 = currentTheme.Accent}, 0.1)
-                task.delay(0.15, function()
-                    PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.3)
-                end)
+                task.delay(0.15, function() PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.3) end)
                 if cfg.Callback then cfg.Callback() end
             end)
 
@@ -668,7 +1599,6 @@ function Nebula:CreateWindow(config)
             cfg = cfg or {}
             local state = cfg.Default or false
             local holder = Instance.new("Frame")
-            holder.Name = "ToggleHolder"
             holder.Parent = Page
             holder.Size = UDim2.new(1, 0, 0, 36)
             holder.BackgroundColor3 = currentTheme.ElementBg
@@ -716,12 +1646,8 @@ function Nebula:CreateWindow(config)
                 UpdateToggle()
                 if cfg.Callback then cfg.Callback(state) end
             end)
-            toggleBtn.MouseEnter:Connect(function()
-                PlayTween(holder, {BackgroundColor3 = currentTheme.Hover}, 0.2)
-            end)
-            toggleBtn.MouseLeave:Connect(function()
-                PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.2)
-            end)
+            toggleBtn.MouseEnter:Connect(function() PlayTween(holder, {BackgroundColor3 = currentTheme.Hover}, 0.2) end)
+            toggleBtn.MouseLeave:Connect(function() PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.2) end)
 
             Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
             Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
@@ -742,7 +1668,6 @@ function Nebula:CreateWindow(config)
             local increment = cfg.Increment or 1
 
             local holder = Instance.new("Frame")
-            holder.Name = "SliderHolder"
             holder.Parent = Page
             holder.Size = UDim2.new(1, 0, 0, 50)
             holder.BackgroundColor3 = currentTheme.ElementBg
@@ -846,7 +1771,6 @@ function Nebula:CreateWindow(config)
             local isOpen = false
 
             local holder = Instance.new("Frame")
-            holder.Name = "DropdownHolder"
             holder.Parent = Page
             holder.Size = UDim2.new(1, 0, 0, 36)
             holder.BackgroundColor3 = currentTheme.ElementBg
@@ -940,7 +1864,6 @@ function Nebula:CreateWindow(config)
         function Tab:AddTextbox(cfg)
             cfg = cfg or {}
             local holder = Instance.new("Frame")
-            holder.Name = "TextboxHolder"
             holder.Parent = Page
             holder.Size = UDim2.new(1, 0, 0, 36)
             holder.BackgroundColor3 = currentTheme.ElementBg
@@ -973,7 +1896,11 @@ function Nebula:CreateWindow(config)
             CreateCorner(inputBox, 4)
             local inputStroke = CreateStroke(inputBox, currentTheme.Stroke, 1)
 
+            inputBox.Focused:Connect(function()
+                PlayTween(inputStroke, {Color = currentTheme.Accent}, 0.2)
+            end)
             inputBox.FocusLost:Connect(function(enterPressed)
+                PlayTween(inputStroke, {Color = currentTheme.Stroke}, 0.2)
                 if cfg.Callback then cfg.Callback(inputBox.Text, enterPressed) end
             end)
 
@@ -995,7 +1922,6 @@ function Nebula:CreateWindow(config)
             local listening = false
 
             local holder = Instance.new("Frame")
-            holder.Name = "KeybindHolder"
             holder.Parent = Page
             holder.Size = UDim2.new(1, 0, 0, 36)
             holder.BackgroundColor3 = currentTheme.ElementBg
@@ -1061,7 +1987,6 @@ function Nebula:CreateWindow(config)
             local isOpen = false
 
             local holder = Instance.new("Frame")
-            holder.Name = "ColorPickerHolder"
             holder.Parent = Page
             holder.Size = UDim2.new(1, 0, 0, 36)
             holder.BackgroundColor3 = currentTheme.ElementBg
@@ -1105,7 +2030,6 @@ function Nebula:CreateWindow(config)
             blackOverlay.Parent = canvasHolder
             blackOverlay.Size = UDim2.new(1, 0, 1, 0)
             blackOverlay.BackgroundColor3 = Color3.new(0, 0, 0)
-            blackOverlay.BackgroundTransparency = 0
             CreateCorner(blackOverlay, 4)
 
             local blackGrad = Instance.new("UIGradient")
@@ -1213,7 +2137,7 @@ function Nebula:CreateWindow(config)
             cfg = cfg or {}
             local sec = Instance.new("TextLabel")
             sec.Parent = Page
-            sec.Size = UDim2.new(1, 0, 0, 28)
+            sec.Size = UDim2.new(1, 0, 0, 24)
             sec.BackgroundTransparency = 1
             sec.Font = Enum.Font.Code
             sec.TextSize = 11
@@ -1225,6 +2149,15 @@ function Nebula:CreateWindow(config)
 
         return Tab
     end
+
+    MainFrame.BackgroundTransparency = 1
+    GlowFrame.BackgroundTransparency = 1
+    local origSize = GlowFrame.Size
+    local origPos = GlowFrame.Position
+    GlowFrame.Size = UDim2.new(0, 0, 0, 0)
+    GlowFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    PlayTween(GlowFrame, {Size = origSize, Position = origPos, BackgroundTransparency = 0.7}, 0.4)
+    PlayTween(MainFrame, {BackgroundTransparency = 0}, 0.4)
 
     return Window
 end
