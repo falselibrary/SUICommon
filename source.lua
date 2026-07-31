@@ -1,49 +1,13 @@
---[[
-    NEBULA UI LIBRARY v2.0
-    
-    Использование:
-    
-    local Nebula = loadstring(...)()
-    
-    local Window = Nebula:CreateWindow({
-        Title = "NEBULA // SYSTEM",
-        Theme = "Dark",
-        Size = {500, 400},
-        MinSize = {400, 280}
-    })
-    
-    local Tab = Window:CreateTab({Name = "Main", Icon = "H"})
-    
-    Tab:AddButton({Name = "Click Me", Callback = function() print("Clicked") end})
-    Tab:AddToggle({Name = "Toggle", Default = false, Callback = function(val) end})
-    Tab:AddSlider({Name = "Speed", Min = 0, Max = 100, Default = 50, Callback = function(val) end})
-    Tab:AddDropdown({Name = "Select", Options = {"A","B","C"}, Default = "A", Callback = function(val) end})
-    Tab:AddKeybind({Name = "Toggle UI", Default = Enum.KeyCode.RightShift, Callback = function() end})
-    Tab:AddLabel({Text = "Hello World"})
-    Tab:AddTextbox({Name = "Input", Placeholder = "Type here...", Callback = function(text) end})
-    Tab:AddColorPicker({Name = "Color", Default = Color3.new(1,0,0), Callback = function(color) end})
-    
-    Window:SetTheme("Ocean")
-    Window:Toggle()
-]]
-
--- [[ СЕРВИСЫ ]]
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 
--- [[ ДАННЫЕ ИГРОКА ]]
 local LocalPlayer = Players.LocalPlayer
 local UserId = LocalPlayer.UserId
-local ThumbType = Enum.ThumbnailType.HeadShot
-local ThumbSize = Enum.ThumbnailSize.Size100x100
-local AvatarContent, IsAvatarReady = Players:GetUserThumbnailAsync(UserId, ThumbType, ThumbSize)
+local AvatarContent, IsAvatarReady = Players:GetUserThumbnailAsync(UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
 
--- ============================================================
--- [[ ТЕМЫ ]]
--- ============================================================
 local Themes = {
     Dark = {
         Main = Color3.fromRGB(18, 18, 22),
@@ -152,20 +116,13 @@ local Themes = {
     }
 }
 
--- ============================================================
--- [[ УТИЛИТЫ ]]
--- ============================================================
-local function Tween(obj, props, duration, style, dir)
-    duration = duration or 0.3
-    style = style or Enum.EasingStyle.Quad
-    dir = dir or Enum.EasingDirection.Out
-    return TweenService:Create(obj, TweenInfo.new(duration, style, dir), props)
+local function Tween(obj, props, duration)
+    if type(duration) ~= "number" then duration = 0.3 end
+    return TweenService:Create(obj, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props)
 end
 
 local function PlayTween(obj, props, duration)
-    if type(duration) ~= "number" then
-        duration = 0.3
-    end
+    if type(duration) ~= "number" then duration = 0.3 end
     Tween(obj, props, duration):Play()
 end
 
@@ -203,9 +160,6 @@ local function GetTimeGreeting()
     else return "GOOD NIGHT" end
 end
 
--- ============================================================
--- [[ БИБЛИОТЕКА ]]
--- ============================================================
 local Nebula = {}
 Nebula.__index = Nebula
 
@@ -227,7 +181,6 @@ function Nebula:CreateWindow(config)
     Window.CurrentThemeName = themeName
     Window.Visible = true
 
-    -- ScreenGui
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "NebulaUI_" .. tostring(math.random(100000, 999999))
     ScreenGui.Parent = CoreGui
@@ -235,90 +188,74 @@ function Nebula:CreateWindow(config)
     ScreenGui.ResetOnSpawn = false
     Window.ScreenGui = ScreenGui
 
-    -- ========== КНОПКА ОТКРЫТИЯ (ИКОНКА) ==========
-local OpenButton = Instance.new("TextButton")
-OpenButton.Name = "OpenButton"
-OpenButton.Parent = ScreenGui
-OpenButton.Size = UDim2.new(0, 45, 0, 45)
-OpenButton.Position = UDim2.new(0, 20, 0, 20)
-OpenButton.BackgroundColor3 = currentTheme.Main
-OpenButton.Text = "N"
-OpenButton.Font = Enum.Font.Code
-OpenButton.TextSize = 20
-OpenButton.TextColor3 = currentTheme.Accent
-OpenButton.AutoButtonColor = false
-OpenButton.Visible = false
-OpenButton.ZIndex = 10
+    local OpenButton = Instance.new("TextButton")
+    OpenButton.Name = "OpenButton"
+    OpenButton.Parent = ScreenGui
+    OpenButton.Size = UDim2.new(0, 45, 0, 45)
+    OpenButton.Position = UDim2.new(0, 20, 0, 20)
+    OpenButton.BackgroundColor3 = currentTheme.Main
+    OpenButton.Text = "N"
+    OpenButton.Font = Enum.Font.Code
+    OpenButton.TextSize = 20
+    OpenButton.TextColor3 = currentTheme.Accent
+    OpenButton.AutoButtonColor = false
+    OpenButton.Visible = false
+    OpenButton.ZIndex = 10
 
-local OpenCorner = Instance.new("UICorner")
-OpenCorner.CornerRadius = UDim.new(1, 0)
-OpenCorner.Parent = OpenButton
+    local OpenCorner = Instance.new("UICorner")
+    OpenCorner.CornerRadius = UDim.new(1, 0)
+    OpenCorner.Parent = OpenButton
 
-local OpenStroke = Instance.new("UIStroke")
-OpenStroke.Color = currentTheme.Accent
-OpenStroke.Thickness = 1.5
-OpenStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-OpenStroke.Parent = OpenButton
+    local OpenStroke = Instance.new("UIStroke")
+    OpenStroke.Color = currentTheme.Accent
+    OpenStroke.Thickness = 1.5
+    OpenStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    OpenStroke.Parent = OpenButton
 
-Window.OpenButton = OpenButton
-Window.OpenStroke = OpenStroke
+    Window.OpenButton = OpenButton
+    Window.OpenStroke = OpenStroke
 
--- Hover эффекты
-OpenButton.MouseEnter:Connect(function()
-    PlayTween(OpenButton, {Size = UDim2.new(0, 50, 0, 50), BackgroundColor3 = currentTheme.Accent, TextColor3 = currentTheme.Main}, 0.2)
-    PlayTween(OpenStroke, {Thickness = 2.5}, 0.2)
-end)
+    OpenButton.MouseEnter:Connect(function()
+        PlayTween(OpenButton, {Size = UDim2.new(0, 50, 0, 50), BackgroundColor3 = currentTheme.Accent, TextColor3 = currentTheme.Main}, 0.2)
+        PlayTween(OpenStroke, {Thickness = 2.5}, 0.2)
+    end)
+    OpenButton.MouseLeave:Connect(function()
+        PlayTween(OpenButton, {Size = UDim2.new(0, 45, 0, 45), BackgroundColor3 = currentTheme.Main, TextColor3 = currentTheme.Accent}, 0.2)
+        PlayTween(OpenStroke, {Thickness = 1.5}, 0.2)
+    end)
 
-OpenButton.MouseLeave:Connect(function()
-    PlayTween(OpenButton, {Size = UDim2.new(0, 45, 0, 45), BackgroundColor3 = currentTheme.Main, TextColor3 = currentTheme.Accent}, 0.2)
-    PlayTween(OpenStroke, {Thickness = 1.5}, 0.2)
-end)
+    local openDragging = false
+    local openDragStart, openStartPos
+    OpenButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            openDragging = true
+            openDragStart = input.Position
+            openStartPos = OpenButton.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then openDragging = false end
+            end)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if openDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - openDragStart
+            OpenButton.Position = UDim2.new(openStartPos.X.Scale, openStartPos.X.Offset + delta.X, openStartPos.Y.Scale, openStartPos.Y.Offset + delta.Y)
+        end
+    end)
+    OpenButton.MouseButton1Click:Connect(function()
+        Window:Toggle()
+    end)
 
--- Drag для кнопки открытия
-local openDragging = false
-local openDragStart, openStartPos
-OpenButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        openDragging = true
-        openDragStart = input.Position
-        openStartPos = OpenButton.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                openDragging = false
-            end
-        end)
-    end
-end)
-UserInputService.InputChanged:Connect(function(input)
-    if openDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - openDragStart
-        OpenButton.Position = UDim2.new(
-            openStartPos.X.Scale, openStartPos.X.Offset + delta.X,
-            openStartPos.Y.Scale, openStartPos.Y.Offset + delta.Y
-        )
-    end
-end)
-
-OpenButton.MouseButton1Click:Connect(function()
-    Window:Toggle()
-end)
-
--- Регистрируем в теме
-Window:RegisterThemeObject(OpenButton, {BackgroundColor3 = "Main", TextColor3 = "Accent"}, {})
-Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
-
-    -- GlowFrame (внешняя тень)
     local GlowFrame = Instance.new("Frame")
     GlowFrame.Name = "GlowFrame"
     GlowFrame.Parent = ScreenGui
     GlowFrame.BackgroundColor3 = currentTheme.Glow
     GlowFrame.BackgroundTransparency = 0.7
-    GlowFrame.Position = UDim2.new(0.5, -math.floor(sizeX/2), 0.5, -math.floor(sizeY/2))
+    GlowFrame.Position = UDim2.new(0.5, -math.floor(sizeX / 2), 0.5, -math.floor(sizeY / 2))
     GlowFrame.Size = UDim2.new(0, sizeX, 0, sizeY)
     CreateCorner(GlowFrame, 10)
     Window.GlowFrame = GlowFrame
 
-    -- MainFrame
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = GlowFrame
@@ -331,7 +268,6 @@ Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
     Window.MainFrame = MainFrame
     Window.MainStroke = mainStroke
 
-    -- ========== SIDEBAR ==========
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
     Sidebar.Parent = MainFrame
@@ -341,7 +277,6 @@ Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
     Window.Sidebar = Sidebar
     Window.SidebarStroke = sidebarStroke
 
-    -- Индикатор активного таба
     local TabIndicator = Instance.new("Frame")
     TabIndicator.Name = "TabIndicator"
     TabIndicator.Parent = Sidebar
@@ -350,7 +285,6 @@ Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
     TabIndicator.Size = UDim2.new(0, 2, 0, 32)
     Window.TabIndicator = TabIndicator
 
-    -- ========== ЗАГОЛОВОК ==========
     local Logo = Instance.new("TextLabel")
     Logo.Name = "Logo"
     Logo.Parent = MainFrame
@@ -364,7 +298,6 @@ Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
     Logo.TextXAlignment = Enum.TextXAlignment.Left
     Window.Logo = Logo
 
-    -- Кнопка закрытия
     local CloseBtn = Instance.new("TextButton")
     CloseBtn.Name = "CloseBtn"
     CloseBtn.Parent = MainFrame
@@ -375,7 +308,6 @@ Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
     CloseBtn.Font = Enum.Font.Code
     CloseBtn.TextSize = 22
     CloseBtn.TextColor3 = currentTheme.DimText
-    
     CloseBtn.MouseEnter:Connect(function()
         PlayTween(CloseBtn, {TextColor3 = Color3.fromRGB(255, 80, 80)}, 0.2)
     end)
@@ -386,7 +318,6 @@ Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
         Window:Toggle()
     end)
 
-    -- Кнопка минимизации
     local MinBtn = Instance.new("TextButton")
     MinBtn.Name = "MinBtn"
     MinBtn.Parent = MainFrame
@@ -397,7 +328,6 @@ Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
     MinBtn.Font = Enum.Font.Code
     MinBtn.TextSize = 16
     MinBtn.TextColor3 = currentTheme.DimText
-    
     MinBtn.MouseEnter:Connect(function()
         PlayTween(MinBtn, {TextColor3 = currentTheme.Accent}, 0.2)
     end)
@@ -408,7 +338,6 @@ Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
         Window:Toggle()
     end)
 
-    -- ========== КОНТЕЙНЕР СТРАНИЦ ==========
     local PageContainer = Instance.new("Frame")
     PageContainer.Name = "PageContainer"
     PageContainer.Parent = MainFrame
@@ -417,7 +346,6 @@ Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
     PageContainer.Size = UDim2.new(1, -72, 1, -60)
     Window.PageContainer = PageContainer
 
-    -- ========== РЕСАЙЗЕР ==========
     local ResizeBtn = Instance.new("TextButton")
     ResizeBtn.Name = "ResizeBtn"
     ResizeBtn.Parent = MainFrame
@@ -444,10 +372,8 @@ Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
         end
     end)
 
-    -- ========== DRAG ==========
     local isDragging = false
     local dragStart, startPos
-
     MainFrame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 and not isResizing then
             local mouseY = input.Position.Y
@@ -465,56 +391,44 @@ Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
     UserInputService.InputChanged:Connect(function(input)
         if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
-            GlowFrame.Position = UDim2.new(
-                startPos.X.Scale, startPos.X.Offset + delta.X,
-                startPos.Y.Scale, startPos.Y.Offset + delta.Y
-            )
+            GlowFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 
-    -- ========== KEYBIND TOGGLE ==========
     UserInputService.InputBegan:Connect(function(input, processed)
         if not processed and input.KeyCode == toggleKey then
             Window:Toggle()
         end
     end)
 
-    -- ========== WELCOME CARD (встроенная Home-вкладка) ==========
     local tabYOffset = 60
 
-    -- ========== МЕТОДЫ WINDOW ==========
-
-function Window:Toggle()
-    Window.Visible = not Window.Visible
-    if Window.Visible then
-        -- Показываем GUI
-        GlowFrame.Visible = true
-        MainFrame.BackgroundTransparency = 1
-        GlowFrame.BackgroundTransparency = 1
-        PlayTween(MainFrame, {BackgroundTransparency = 0}, 0.3)
-        PlayTween(GlowFrame, {BackgroundTransparency = 0.7}, 0.3)
-        -- Скрываем кнопку открытия
-        PlayTween(OpenButton, {Size = UDim2.new(0, 0, 0, 0)}, 0.25)
-        task.delay(0.25, function()
-            if Window.Visible then
-                OpenButton.Visible = false
-            end
-        end)
-    else
-        -- Скрываем GUI
-        PlayTween(MainFrame, {BackgroundTransparency = 1}, 0.3)
-        PlayTween(GlowFrame, {BackgroundTransparency = 1}, 0.3)
-        task.delay(0.3, function()
-            if not Window.Visible then
-                GlowFrame.Visible = false
-                -- Показываем кнопку открытия
-                OpenButton.Visible = true
-                OpenButton.Size = UDim2.new(0, 0, 0, 0)
-                PlayTween(OpenButton, {Size = UDim2.new(0, 45, 0, 45)}, 0.3)
-            end
-        end)
+    function Window:Toggle()
+        Window.Visible = not Window.Visible
+        if Window.Visible then
+            GlowFrame.Visible = true
+            MainFrame.BackgroundTransparency = 1
+            GlowFrame.BackgroundTransparency = 1
+            PlayTween(MainFrame, {BackgroundTransparency = 0}, 0.3)
+            PlayTween(GlowFrame, {BackgroundTransparency = 0.7}, 0.3)
+            PlayTween(OpenButton, {Size = UDim2.new(0, 0, 0, 0)}, 0.25)
+            task.delay(0.25, function()
+                if Window.Visible then OpenButton.Visible = false end
+            end)
+        else
+            PlayTween(MainFrame, {BackgroundTransparency = 1}, 0.3)
+            PlayTween(GlowFrame, {BackgroundTransparency = 1}, 0.3)
+            task.delay(0.3, function()
+                if not Window.Visible then
+                    GlowFrame.Visible = false
+                    OpenButton.Visible = true
+                    OpenButton.Size = UDim2.new(0, 0, 0, 0)
+                    PlayTween(OpenButton, {Size = UDim2.new(0, 45, 0, 45)}, 0.3)
+                end
+            end)
+        end
     end
-end
+
     function Window:Destroy()
         ScreenGui:Destroy()
     end
@@ -523,34 +437,26 @@ end
         if not Themes[name] then return end
         currentTheme = Themes[name]
         Window.CurrentThemeName = name
-        local info = 0.5
-
-        PlayTween(MainFrame, {BackgroundColor3 = currentTheme.Main}, info)
-        PlayTween(Sidebar, {BackgroundColor3 = currentTheme.Sidebar}, info)
-        PlayTween(mainStroke, {Color = currentTheme.Stroke}, info)
-        PlayTween(sidebarStroke, {Color = currentTheme.Stroke}, info)
-        PlayTween(TabIndicator, {BackgroundColor3 = currentTheme.Accent}, info)
-        PlayTween(Logo, {TextColor3 = currentTheme.Accent}, info)
-        PlayTween(GlowFrame, {BackgroundColor3 = currentTheme.Glow}, info)
-
-        -- Обновляем все зарегистрированные объекты
+        local d = 0.5
+        PlayTween(MainFrame, {BackgroundColor3 = currentTheme.Main}, d)
+        PlayTween(Sidebar, {BackgroundColor3 = currentTheme.Sidebar}, d)
+        PlayTween(mainStroke, {Color = currentTheme.Stroke}, d)
+        PlayTween(sidebarStroke, {Color = currentTheme.Stroke}, d)
+        PlayTween(TabIndicator, {BackgroundColor3 = currentTheme.Accent}, d)
+        PlayTween(Logo, {TextColor3 = currentTheme.Accent}, d)
+        PlayTween(GlowFrame, {BackgroundColor3 = currentTheme.Glow}, d)
+        PlayTween(OpenButton, {BackgroundColor3 = currentTheme.Main, TextColor3 = currentTheme.Accent}, d)
+        PlayTween(OpenStroke, {Color = currentTheme.Accent}, d)
         for _, obj in pairs(Window.ThemeObjects) do
             if obj.Instance and obj.Instance.Parent then
                 local props = {}
                 for prop, themeKey in pairs(obj.Props) do
-                    if currentTheme[themeKey] then
-                        props[prop] = currentTheme[themeKey]
-                    end
+                    if currentTheme[themeKey] then props[prop] = currentTheme[themeKey] end
                 end
-                if next(props) then
-                    PlayTween(obj.Instance, props, info)
-                end
-                -- Прямые свойства (UIStroke и т.д.)
+                if next(props) then PlayTween(obj.Instance, props, d) end
                 if obj.Direct then
                     for prop, themeKey in pairs(obj.Direct) do
-                        if currentTheme[themeKey] then
-                            obj.Instance[prop] = currentTheme[themeKey]
-                        end
+                        if currentTheme[themeKey] then obj.Instance[prop] = currentTheme[themeKey] end
                     end
                 end
             end
@@ -558,24 +464,46 @@ end
     end
 
     function Window:RegisterThemeObject(instance, tweenProps, directProps)
-        table.insert(Window.ThemeObjects, {
-            Instance = instance,
-            Props = tweenProps or {},
-            Direct = directProps or {}
-        })
+        table.insert(Window.ThemeObjects, {Instance = instance, Props = tweenProps or {}, Direct = directProps or {}})
     end
 
-    -- ========== CREATE TAB ==========
+    function Window:Notify(cfg)
+        cfg = cfg or {}
+        local text = cfg.Text or "Notification"
+        local duration = cfg.Duration or 3
+        local notif = Instance.new("Frame")
+        notif.Parent = ScreenGui
+        notif.Size = UDim2.new(0, 280, 0, 40)
+        notif.Position = UDim2.new(1, 0, 1, -55)
+        notif.BackgroundColor3 = currentTheme.Card
+        CreateCorner(notif, 6)
+        CreateStroke(notif, currentTheme.Accent, 1)
+        local nLabel = Instance.new("TextLabel")
+        nLabel.Parent = notif
+        nLabel.Size = UDim2.new(1, -16, 1, 0)
+        nLabel.Position = UDim2.new(0, 8, 0, 0)
+        nLabel.BackgroundTransparency = 1
+        nLabel.Font = Enum.Font.Code
+        nLabel.TextSize = 12
+        nLabel.Text = text
+        nLabel.TextColor3 = currentTheme.Text
+        nLabel.TextXAlignment = Enum.TextXAlignment.Left
+        nLabel.TextWrapped = true
+        PlayTween(notif, {Position = UDim2.new(1, -295, 1, -55)}, 0.4)
+        task.delay(duration, function()
+            PlayTween(notif, {Position = UDim2.new(1, 10, 1, -55)}, 0.4)
+            task.delay(0.45, function() notif:Destroy() end)
+        end)
+    end
+
     function Window:CreateTab(tabConfig)
         tabConfig = tabConfig or {}
         local tabName = tabConfig.Name or "Tab"
         local tabIcon = tabConfig.Icon or "•"
-
         local Tab = {}
         Tab.Name = tabName
         Tab.Elements = {}
 
-        -- Страница (ScrollingFrame)
         local Page = Instance.new("ScrollingFrame")
         Page.Name = tabName
         Page.Parent = PageContainer
@@ -592,12 +520,9 @@ end
         pageLayout.Parent = Page
         pageLayout.Padding = UDim.new(0, 8)
         pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
         CreatePadding(Page, 5, 5, 10, 10)
-
         Tab.Page = Page
 
-        -- Кнопка в сайдбаре
         local yPos = tabYOffset
         tabYOffset = tabYOffset + 40
 
@@ -612,23 +537,18 @@ end
         sideBtn.TextColor3 = currentTheme.DimText
         sideBtn.TextSize = 14
         CreateCorner(sideBtn, 6)
-
         sideBtn.MouseEnter:Connect(function()
             PlayTween(sideBtn, {BackgroundTransparency = 0.85}, 0.2)
         end)
         sideBtn.MouseLeave:Connect(function()
             PlayTween(sideBtn, {BackgroundTransparency = 0.96}, 0.2)
         end)
-
         sideBtn.MouseButton1Click:Connect(function()
             PlayTween(TabIndicator, {Position = UDim2.new(0, 0, 0, yPos)}, 0.3)
-                for _, t in pairs(Window.Tabs) do
-                t.Page.Visible = false
-            end
+            for _, t in pairs(Window.Tabs) do t.Page.Visible = false end
             Page.Visible = true
         end)
 
-        -- Первый таб — активный
         if #Window.Tabs == 0 then
             Page.Visible = true
             TabIndicator.Position = UDim2.new(0, 0, 0, yPos)
@@ -636,14 +556,8 @@ end
 
         table.insert(Window.Tabs, Tab)
         table.insert(Window.TabButtons, sideBtn)
-
         Window:RegisterThemeObject(sideBtn, {BackgroundColor3 = "Main", TextColor3 = "DimText"}, {})
 
-        -- ============================================================
-        -- [[ ЭЛЕМЕНТЫ ВКЛАДКИ ]]
-        -- ============================================================
-
-        -- ---- WELCOME CARD ----
         function Tab:AddWelcomeCard()
             local card = Instance.new("Frame")
             card.Name = "WelcomeCard"
@@ -690,11 +604,9 @@ end
             Window:RegisterThemeObject(avStroke, {}, {Color = "Accent"})
             Window:RegisterThemeObject(greeting, {TextColor3 = "Accent"}, {})
             Window:RegisterThemeObject(playerName, {TextColor3 = "Text"}, {})
-
             return card
         end
 
-        -- ---- LABEL ----
         function Tab:AddLabel(cfg)
             cfg = cfg or {}
             local label = Instance.new("TextLabel")
@@ -707,17 +619,12 @@ end
             label.Text = cfg.Text or "Label"
             label.TextColor3 = currentTheme.DimText
             label.TextXAlignment = Enum.TextXAlignment.Left
-
             Window:RegisterThemeObject(label, {TextColor3 = "DimText"}, {})
-
             local LabelAPI = {}
-            function LabelAPI:SetText(txt)
-                label.Text = txt
-            end
+            function LabelAPI:SetText(txt) label.Text = txt end
             return LabelAPI
         end
 
-        -- ---- BUTTON ----
         function Tab:AddButton(cfg)
             cfg = cfg or {}
             local holder = Instance.new("Frame")
@@ -745,14 +652,11 @@ end
                 PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.2)
             end)
             btn.MouseButton1Click:Connect(function()
-                -- Ripple effect
                 PlayTween(holder, {BackgroundColor3 = currentTheme.Accent}, 0.1)
                 task.delay(0.15, function()
                     PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.3)
                 end)
-                if cfg.Callback then
-                    cfg.Callback()
-                end
+                if cfg.Callback then cfg.Callback() end
             end)
 
             Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
@@ -760,11 +664,9 @@ end
             Window:RegisterThemeObject(btn, {TextColor3 = "Text"}, {})
         end
 
-        -- ---- TOGGLE ----
         function Tab:AddToggle(cfg)
             cfg = cfg or {}
             local state = cfg.Default or false
-
             local holder = Instance.new("Frame")
             holder.Name = "ToggleHolder"
             holder.Parent = Page
@@ -814,7 +716,6 @@ end
                 UpdateToggle()
                 if cfg.Callback then cfg.Callback(state) end
             end)
-
             toggleBtn.MouseEnter:Connect(function()
                 PlayTween(holder, {BackgroundColor3 = currentTheme.Hover}, 0.2)
             end)
@@ -827,18 +728,11 @@ end
             Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
 
             local ToggleAPI = {}
-            function ToggleAPI:Set(val)
-                state = val
-                UpdateToggle()
-                if cfg.Callback then cfg.Callback(state) end
-            end
-            function ToggleAPI:Get()
-                return state
-            end
+            function ToggleAPI:Set(val) state = val UpdateToggle() if cfg.Callback then cfg.Callback(state) end end
+            function ToggleAPI:Get() return state end
             return ToggleAPI
         end
 
-        -- ---- SLIDER ----
         function Tab:AddSlider(cfg)
             cfg = cfg or {}
             local min = cfg.Min or 0
@@ -885,7 +779,7 @@ end
 
             local sliderFill = Instance.new("Frame")
             sliderFill.Parent = sliderBg
-            sliderFill.Size = UDim2.new((value - min)/(max - min), 0, 1, 0)
+            sliderFill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
             sliderFill.BackgroundColor3 = currentTheme.SliderFill
             CreateCorner(sliderFill, 3)
 
@@ -899,7 +793,6 @@ end
 
             local function UpdateSlider(newVal)
                 value = math.clamp(newVal, min, max)
-                -- Round to increment
                 value = math.floor(value / increment + 0.5) * increment
                 value = math.clamp(value, min, max)
                 local pct = (value - min) / (max - min)
@@ -917,15 +810,10 @@ end
             sliderButton.Text = ""
             sliderButton.ZIndex = 6
 
-            sliderButton.MouseButton1Down:Connect(function()
-                sliding = true
-            end)
+            sliderButton.MouseButton1Down:Connect(function() sliding = true end)
             UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    sliding = false
-                end
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then sliding = false end
             end)
-
             RunService.RenderStepped:Connect(function()
                 if sliding then
                     local mx = UserInputService:GetMouseLocation().X
@@ -946,17 +834,11 @@ end
             Window:RegisterThemeObject(sliderFill, {BackgroundColor3 = "SliderFill"}, {})
 
             local SliderAPI = {}
-            function SliderAPI:Set(val)
-                UpdateSlider(val)
-                if cfg.Callback then cfg.Callback(value) end
-            end
-            function SliderAPI:Get()
-                return value
-            end
+            function SliderAPI:Set(val) UpdateSlider(val) if cfg.Callback then cfg.Callback(value) end end
+            function SliderAPI:Get() return value end
             return SliderAPI
         end
 
-        -- ---- DROPDOWN ----
         function Tab:AddDropdown(cfg)
             cfg = cfg or {}
             local options = cfg.Options or {}
@@ -1003,7 +885,7 @@ end
             optLayout.Parent = optionsContainer
             optLayout.Padding = UDim.new(0, 2)
 
-            for _, opt in pairs(options) do
+            local function CreateOptionBtn(opt)
                 local optBtn = Instance.new("TextButton")
                 optBtn.Parent = optionsContainer
                 optBtn.Size = UDim2.new(1, 0, 0, 26)
@@ -1013,14 +895,8 @@ end
                 optBtn.TextColor3 = currentTheme.Text
                 optBtn.Text = opt
                 CreateCorner(optBtn, 4)
-
-                optBtn.MouseEnter:Connect(function()
-                    PlayTween(optBtn, {BackgroundColor3 = currentTheme.Hover}, 0.15)
-                end)
-                optBtn.MouseLeave:Connect(function()
-                    PlayTween(optBtn, {BackgroundColor3 = currentTheme.Card}, 0.15)
-                end)
-
+                optBtn.MouseEnter:Connect(function() PlayTween(optBtn, {BackgroundColor3 = currentTheme.Hover}, 0.15) end)
+                optBtn.MouseLeave:Connect(function() PlayTween(optBtn, {BackgroundColor3 = currentTheme.Card}, 0.15) end)
                 optBtn.MouseButton1Click:Connect(function()
                     selected = opt
                     header.Text = (cfg.Name or "Dropdown") .. ": " .. opt
@@ -1029,9 +905,10 @@ end
                     PlayTween(arrow, {Rotation = 0}, 0.25)
                     if cfg.Callback then cfg.Callback(opt) end
                 end)
-
                 Window:RegisterThemeObject(optBtn, {BackgroundColor3 = "Card", TextColor3 = "Text"}, {})
             end
+
+            for _, opt in pairs(options) do CreateOptionBtn(opt) end
 
             header.MouseButton1Click:Connect(function()
                 isOpen = not isOpen
@@ -1046,56 +923,22 @@ end
             Window:RegisterThemeObject(arrow, {TextColor3 = "DimText"}, {})
 
             local DropAPI = {}
-            function DropAPI:Set(val)
-                selected = val
-                header.Text = (cfg.Name or "Dropdown") .. ": " .. val
-                if cfg.Callback then cfg.Callback(val) end
-            end
-            function DropAPI:Get()
-                return selected
-            end
+            function DropAPI:Set(val) selected = val header.Text = (cfg.Name or "Dropdown") .. ": " .. val if cfg.Callback then cfg.Callback(val) end end
+            function DropAPI:Get() return selected end
             function DropAPI:Refresh(newOptions, newDefault)
-                -- Очистка
-                for _, c in pairs(optionsContainer:GetChildren()) do
-                    if c:IsA("TextButton") then c:Destroy() end
-                end
+                for _, c in pairs(optionsContainer:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
                 options = newOptions or {}
                 selected = newDefault or options[1] or ""
                 header.Text = (cfg.Name or "Dropdown") .. ": " .. selected
                 optionsContainer.Size = UDim2.new(1, -8, 0, #options * 28)
-
-                for _, opt in pairs(options) do
-                    local optBtn = Instance.new("TextButton")
-                    optBtn.Parent = optionsContainer
-                    optBtn.Size = UDim2.new(1, 0, 0, 26)
-                    optBtn.BackgroundColor3 = currentTheme.Card
-                    optBtn.Font = Enum.Font.Code
-                    optBtn.TextSize = 12
-                    optBtn.TextColor3 = currentTheme.Text
-                    optBtn.Text = opt
-                    CreateCorner(optBtn, 4)
-
-                    optBtn.MouseButton1Click:Connect(function()
-                        selected = opt
-                        header.Text = (cfg.Name or "Dropdown") .. ": " .. opt
-                        isOpen = false
-                        PlayTween(holder, {Size = UDim2.new(1, 0, 0, 36)}, 0.25)
-                        if cfg.Callback then cfg.Callback(opt) end
-                    end)
-                end
-
-                if isOpen then
-                    isOpen = false
-                    holder.Size = UDim2.new(1, 0, 0, 36)
-                end
+                for _, opt in pairs(options) do CreateOptionBtn(opt) end
+                if isOpen then isOpen = false holder.Size = UDim2.new(1, 0, 0, 36) end
             end
             return DropAPI
         end
 
-        -- ---- TEXTBOX ----
         function Tab:AddTextbox(cfg)
             cfg = cfg or {}
-
             local holder = Instance.new("Frame")
             holder.Name = "TextboxHolder"
             holder.Parent = Page
@@ -1128,7 +971,7 @@ end
             inputBox.Text = cfg.Default or ""
             inputBox.ClearTextOnFocus = cfg.ClearOnFocus or false
             CreateCorner(inputBox, 4)
-            CreateStroke(inputBox, currentTheme.Stroke, 1)
+            local inputStroke = CreateStroke(inputBox, currentTheme.Stroke, 1)
 
             inputBox.FocusLost:Connect(function(enterPressed)
                 if cfg.Callback then cfg.Callback(inputBox.Text, enterPressed) end
@@ -1138,18 +981,14 @@ end
             Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
             Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
             Window:RegisterThemeObject(inputBox, {BackgroundColor3 = "Card", TextColor3 = "Text", PlaceholderColor3 = "DimText"}, {})
+            Window:RegisterThemeObject(inputStroke, {}, {Color = "Stroke"})
 
             local TbAPI = {}
-            function TbAPI:SetText(txt)
-                inputBox.Text = txt
-            end
-            function TbAPI:GetText()
-                return inputBox.Text
-            end
+            function TbAPI:SetText(txt) inputBox.Text = txt end
+            function TbAPI:GetText() return inputBox.Text end
             return TbAPI
         end
 
-        -- ---- KEYBIND ----
         function Tab:AddKeybind(cfg)
             cfg = cfg or {}
             local currentKey = cfg.Default or Enum.KeyCode.E
@@ -1184,7 +1023,7 @@ end
             keyBtn.TextColor3 = currentTheme.Accent
             keyBtn.Text = "[" .. currentKey.Name .. "]"
             CreateCorner(keyBtn, 4)
-            CreateStroke(keyBtn, currentTheme.Stroke, 1)
+            local keyStroke = CreateStroke(keyBtn, currentTheme.Stroke, 1)
 
             keyBtn.MouseButton1Click:Connect(function()
                 listening = true
@@ -1199,7 +1038,7 @@ end
                     keyBtn.Text = "[" .. currentKey.Name .. "]"
                     PlayTween(keyBtn, {TextColor3 = currentTheme.Accent}, 0.2)
                     if cfg.Callback then cfg.Callback(currentKey) end
-                elseif not processed and input.KeyCode == currentKey then
+                elseif not processed and not listening and input.KeyCode == currentKey then
                     if cfg.OnPress then cfg.OnPress() end
                 end
             end)
@@ -1208,19 +1047,14 @@ end
             Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
             Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
             Window:RegisterThemeObject(keyBtn, {BackgroundColor3 = "Card", TextColor3 = "Accent"}, {})
+            Window:RegisterThemeObject(keyStroke, {}, {Color = "Stroke"})
 
             local KbAPI = {}
-            function KbAPI:SetKey(key)
-                currentKey = key
-                keyBtn.Text = "[" .. key.Name .. "]"
-            end
-            function KbAPI:GetKey()
-                return currentKey
-            end
+            function KbAPI:SetKey(key) currentKey = key keyBtn.Text = "[" .. key.Name .. "]" end
+            function KbAPI:GetKey() return currentKey end
             return KbAPI
         end
 
-        -- ---- COLOR PICKER ----
         function Tab:AddColorPicker(cfg)
             cfg = cfg or {}
             local currentColor = cfg.Default or Color3.fromRGB(255, 0, 0)
@@ -1253,9 +1087,8 @@ end
             preview.BackgroundColor3 = currentColor
             preview.Text = ""
             CreateCorner(preview, 4)
-            CreateStroke(preview, currentTheme.Stroke, 1)
+            local previewStroke = CreateStroke(preview, currentTheme.Stroke, 1)
 
-            -- Color canvas
             local canvasHolder = Instance.new("Frame")
             canvasHolder.Parent = holder
             canvasHolder.Size = UDim2.new(1, -20, 0, 120)
@@ -1263,13 +1096,9 @@ end
             canvasHolder.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
             CreateCorner(canvasHolder, 4)
 
-            -- SV gradient
             local whiteGrad = Instance.new("UIGradient")
-            whiteGrad.Color = ColorSequence.new(Color3.new(1,1,1), Color3.new(1,1,1))
-            whiteGrad.Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0),
-                NumberSequenceKeypoint.new(1, 1)
-            })
+            whiteGrad.Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(1, 1, 1))
+            whiteGrad.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1)})
             whiteGrad.Parent = canvasHolder
 
             local blackOverlay = Instance.new("Frame")
@@ -1280,15 +1109,11 @@ end
             CreateCorner(blackOverlay, 4)
 
             local blackGrad = Instance.new("UIGradient")
-            blackGrad.Color = ColorSequence.new(Color3.new(0,0,0), Color3.new(0,0,0))
-            blackGrad.Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 1),
-                NumberSequenceKeypoint.new(1, 0)
-            })
+            blackGrad.Color = ColorSequence.new(Color3.new(0, 0, 0), Color3.new(0, 0, 0))
+            blackGrad.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0)})
             blackGrad.Rotation = 90
             blackGrad.Parent = blackOverlay
 
-            -- Hue bar
             local hueBar = Instance.new("Frame")
             hueBar.Parent = holder
             hueBar.Size = UDim2.new(1, -20, 0, 14)
@@ -1297,13 +1122,13 @@ end
 
             local hueGrad = Instance.new("UIGradient")
             hueGrad.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromHSV(0,1,1)),
-                ColorSequenceKeypoint.new(0.167, Color3.fromHSV(0.167,1,1)),
-                ColorSequenceKeypoint.new(0.333, Color3.fromHSV(0.333,1,1)),
-                ColorSequenceKeypoint.new(0.5, Color3.fromHSV(0.5,1,1)),
-                ColorSequenceKeypoint.new(0.667, Color3.fromHSV(0.667,1,1)),
-                ColorSequenceKeypoint.new(0.833, Color3.fromHSV(0.833,1,1)),
-                ColorSequenceKeypoint.new(1, Color3.fromHSV(1,1,1)),
+                ColorSequenceKeypoint.new(0, Color3.fromHSV(0, 1, 1)),
+                ColorSequenceKeypoint.new(0.167, Color3.fromHSV(0.167, 1, 1)),
+                ColorSequenceKeypoint.new(0.333, Color3.fromHSV(0.333, 1, 1)),
+                ColorSequenceKeypoint.new(0.5, Color3.fromHSV(0.5, 1, 1)),
+                ColorSequenceKeypoint.new(0.667, Color3.fromHSV(0.667, 1, 1)),
+                ColorSequenceKeypoint.new(0.833, Color3.fromHSV(0.833, 1, 1)),
+                ColorSequenceKeypoint.new(1, Color3.fromHSV(1, 1, 1)),
             })
             hueGrad.Parent = hueBar
 
@@ -1335,10 +1160,7 @@ end
             svButton.MouseButton1Down:Connect(function() draggingSV = true end)
             hueSlider.MouseButton1Down:Connect(function() draggingH = true end)
             UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    draggingSV = false
-                    draggingH = false
-                end
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingSV = false draggingH = false end
             end)
 
             RunService.RenderStepped:Connect(function()
@@ -1370,30 +1192,23 @@ end
             Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
             Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
             Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
+            Window:RegisterThemeObject(previewStroke, {}, {Color = "Stroke"})
 
             local CpAPI = {}
-            function CpAPI:Set(color)
-                h, s, v = Color3.toHSV(color)
-                UpdateColor()
-            end
-            function CpAPI:Get()
-                return currentColor
-            end
+            function CpAPI:Set(color) h, s, v = Color3.toHSV(color) UpdateColor() end
+            function CpAPI:Get() return currentColor end
             return CpAPI
         end
 
-        -- ---- SEPARATOR ----
         function Tab:AddSeparator()
             local sep = Instance.new("Frame")
             sep.Parent = Page
             sep.Size = UDim2.new(1, 0, 0, 1)
             sep.BackgroundColor3 = currentTheme.Stroke
             sep.BorderSizePixel = 0
-
             Window:RegisterThemeObject(sep, {BackgroundColor3 = "Stroke"}, {})
         end
 
-        -- ---- SECTION HEADER ----
         function Tab:AddSection(cfg)
             cfg = cfg or {}
             local sec = Instance.new("TextLabel")
@@ -1405,51 +1220,12 @@ end
             sec.Text = "// " .. (cfg.Name or "SECTION"):upper()
             sec.TextColor3 = currentTheme.Accent
             sec.TextXAlignment = Enum.TextXAlignment.Left
-
             Window:RegisterThemeObject(sec, {TextColor3 = "Accent"}, {})
         end
 
         return Tab
     end
 
-    -- Notification
-    function Window:Notify(cfg)
-        cfg = cfg or {}
-        local text = cfg.Text or "Notification"
-        local duration = cfg.Duration or 3
-
-        local notif = Instance.new("Frame")
-        notif.Parent = ScreenGui
-        notif.Size = UDim2.new(0, 280, 0, 40)
-        notif.Position = UDim2.new(1, 0, 1, -55)
-        notif.BackgroundColor3 = currentTheme.Card
-        CreateCorner(notif, 6)
-        CreateStroke(notif, currentTheme.Accent, 1)
-
-        local nLabel = Instance.new("TextLabel")
-        nLabel.Parent = notif
-        nLabel.Size = UDim2.new(1, -16, 1, 0)
-        nLabel.Position = UDim2.new(0, 8, 0, 0)
-        nLabel.BackgroundTransparency = 1
-        nLabel.Font = Enum.Font.Code
-        nLabel.TextSize = 12
-        nLabel.Text = text
-        nLabel.TextColor3 = currentTheme.Text
-        nLabel.TextXAlignment = Enum.TextXAlignment.Left
-        nLabel.TextWrapped = true
-
-        -- Slide in
-        PlayTween(notif, {Position = UDim2.new(1, -295, 1, -55)}, 0.4)
-
-        task.delay(duration, function()
-            PlayTween(notif, {Position = UDim2.new(1, 10, 1, -55)}, 0.4)
-            task.delay(0.45, function()
-                notif:Destroy()
-            end)
-        end)
-    end
-
-    print("NEBULA UI LIBRARY LOADED // v2.0")
     return Window
 end
 
