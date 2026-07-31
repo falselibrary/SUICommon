@@ -1,1393 +1,1367 @@
+--[[
+    NEBULA UI LIBRARY v2.0
+    
+    Использование:
+    
+    local Nebula = loadstring(...)()
+    
+    local Window = Nebula:CreateWindow({
+        Title = "NEBULA // SYSTEM",
+        Theme = "Dark",
+        Size = {500, 400},
+        MinSize = {400, 280}
+    })
+    
+    local Tab = Window:CreateTab({Name = "Main", Icon = "H"})
+    
+    Tab:AddButton({Name = "Click Me", Callback = function() print("Clicked") end})
+    Tab:AddToggle({Name = "Toggle", Default = false, Callback = function(val) end})
+    Tab:AddSlider({Name = "Speed", Min = 0, Max = 100, Default = 50, Callback = function(val) end})
+    Tab:AddDropdown({Name = "Select", Options = {"A","B","C"}, Default = "A", Callback = function(val) end})
+    Tab:AddKeybind({Name = "Toggle UI", Default = Enum.KeyCode.RightShift, Callback = function() end})
+    Tab:AddLabel({Text = "Hello World"})
+    Tab:AddTextbox({Name = "Input", Placeholder = "Type here...", Callback = function(text) end})
+    Tab:AddColorPicker({Name = "Color", Default = Color3.new(1,0,0), Callback = function(color) end})
+    
+    Window:SetTheme("Ocean")
+    Window:Toggle()
+]]
 
-local Library = {}
+-- [[ СЕРВИСЫ ]]
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
 
--- Создание GUI
-local ScreenGui = Instance.new("ScreenGui")
-local MainFrame = Instance.new("Frame")
-local TopBar = Instance.new("Frame")
-local Title = Instance.new("TextLabel")
-local CloseButton = Instance.new("TextButton")
-local MinimizeButton = Instance.new("TextButton")
-local TabsFrame = Instance.new("ScrollingFrame")
-local ContentFrame = Instance.new("Frame")
-local ScrollingFrame = Instance.new("ScrollingFrame")
-local UIListLayout = Instance.new("UIListLayout")
-local ButtonsFrame = Instance.new("Frame")
-local CheckAllButton = Instance.new("TextButton")
-local ClearButton = Instance.new("TextButton")
-local ExportButton = Instance.new("TextButton")
-local SearchBox = Instance.new("TextBox")
-local StatusText = Instance.new("TextLabel")
+-- [[ ДАННЫЕ ИГРОКА ]]
+local LocalPlayer = Players.LocalPlayer
+local UserId = LocalPlayer.UserId
+local ThumbType = Enum.ThumbnailType.HeadShot
+local ThumbSize = Enum.ThumbnailSize.Size100x100
+local AvatarContent, IsAvatarReady = Players:GetUserThumbnailAsync(UserId, ThumbType, ThumbSize)
 
--- Защита GUI
-if syn and syn.protect_gui then
-    syn.protect_gui(ScreenGui)
-end
-ScreenGui.Name = math.random(1000000, 9999999)
-ScreenGui.Parent = game:GetService("CoreGui")
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.ResetOnSpawn = false
-
--- Main Frame
-MainFrame.Name = "MainFrame"
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.25, 0, 0.15, 0)
-MainFrame.Size = UDim2.new(0, 800, 0, 600)
-MainFrame.Active = true
-MainFrame.ClipsDescendants = true
-
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 12)
-MainCorner.Parent = MainFrame
-
-local MainStroke = Instance.new("UIStroke")
-MainStroke.Color = Color3.fromRGB(60, 120, 255)
-MainStroke.Thickness = 1
-MainStroke.Transparency = 0.7
-MainStroke.Parent = MainFrame
-
--- Top Bar
-TopBar.Name = "TopBar"
-TopBar.Parent = MainFrame
-TopBar.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
-TopBar.BorderSizePixel = 0
-TopBar.Size = UDim2.new(1, 0, 0, 50)
-
-local TopCorner = Instance.new("UICorner")
-TopCorner.CornerRadius = UDim.new(0, 12)
-TopCorner.Parent = TopBar
-
-local TopLine = Instance.new("Frame")
-TopLine.Parent = TopBar
-TopLine.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
-TopLine.BorderSizePixel = 0
-TopLine.Position = UDim2.new(0, 0, 1, -2)
-TopLine.Size = UDim2.new(1, 0, 0, 2)
-
--- Title
-Title.Name = "Title"
-Title.Parent = TopBar
-Title.BackgroundTransparency = 1
-Title.Position = UDim2.new(0, 15, 0, 8)
-Title.Size = UDim2.new(0.4, 0, 0, 20)
-Title.Font = Enum.Font.GothamBold
-Title.Text = "BurmaldaGandonTEST|FUNCTION|EXECUTOR"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 16
-Title.TextXAlignment = Enum.TextXAlignment.Left
-
-local VersionLabel = Instance.new("TextLabel")
-VersionLabel.Parent = TopBar
-VersionLabel.BackgroundTransparency = 1
-VersionLabel.Position = UDim2.new(0, 15, 0, 28)
-VersionLabel.Size = UDim2.new(0.3, 0, 0, 14)
-VersionLabel.Font = Enum.Font.Gotham
-VersionLabel.Text = "v3.0 MEGA | 150+ Checks"
-VersionLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-VersionLabel.TextSize = 10
-VersionLabel.TextXAlignment = Enum.TextXAlignment.Left
-
--- Search Box
-SearchBox.Name = "SearchBox"
-SearchBox.Parent = TopBar
-SearchBox.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
-SearchBox.BorderSizePixel = 0
-SearchBox.Position = UDim2.new(1, -270, 0.5, -15)
-SearchBox.Size = UDim2.new(0, 180, 0, 30)
-SearchBox.Font = Enum.Font.Gotham
-SearchBox.PlaceholderText = "🔍 Search..."
-SearchBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 110)
-SearchBox.Text = ""
-SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-SearchBox.TextSize = 12
-SearchBox.ClearTextOnFocus = false
-
-local SearchCorner = Instance.new("UICorner")
-SearchCorner.CornerRadius = UDim.new(0, 8)
-SearchCorner.Parent = SearchBox
-
-local SearchPadding = Instance.new("UIPadding")
-SearchPadding.PaddingLeft = UDim.new(0, 10)
-SearchPadding.Parent = SearchBox
-
--- Close Button
-CloseButton.Name = "CloseButton"
-CloseButton.Parent = TopBar
-CloseButton.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-CloseButton.BorderSizePixel = 0
-CloseButton.Position = UDim2.new(1, -38, 0.5, -15)
-CloseButton.Size = UDim2.new(0, 30, 0, 30)
-CloseButton.Font = Enum.Font.GothamBold
-CloseButton.Text = "×"
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.TextSize = 18
-CloseButton.AutoButtonColor = false
-
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 8)
-CloseCorner.Parent = CloseButton
-
--- Minimize Button
-MinimizeButton.Name = "MinimizeButton"
-MinimizeButton.Parent = TopBar
-MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 180, 70)
-MinimizeButton.BorderSizePixel = 0
-MinimizeButton.Position = UDim2.new(1, -73, 0.5, -15)
-MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
-MinimizeButton.Font = Enum.Font.GothamBold
-MinimizeButton.Text = "−"
-MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-MinimizeButton.TextSize = 18
-MinimizeButton.AutoButtonColor = false
-
-local MinCorner = Instance.new("UICorner")
-MinCorner.CornerRadius = UDim.new(0, 8)
-MinCorner.Parent = MinimizeButton
-
--- Tabs Frame
-TabsFrame.Name = "TabsFrame"
-TabsFrame.Parent = MainFrame
-TabsFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
-TabsFrame.BorderSizePixel = 0
-TabsFrame.Position = UDim2.new(0, 10, 0, 60)
-TabsFrame.Size = UDim2.new(0, 160, 1, -120)
-TabsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-TabsFrame.ScrollBarThickness = 4
-TabsFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 120, 255)
-
-local TabsCorner = Instance.new("UICorner")
-TabsCorner.CornerRadius = UDim.new(0, 10)
-TabsCorner.Parent = TabsFrame
-
-local TabsLayout = Instance.new("UIListLayout")
-TabsLayout.Parent = TabsFrame
-TabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-TabsLayout.Padding = UDim.new(0, 5)
-
-local TabsPadding = Instance.new("UIPadding")
-TabsPadding.PaddingTop = UDim.new(0, 8)
-TabsPadding.PaddingBottom = UDim.new(0, 8)
-TabsPadding.PaddingLeft = UDim.new(0, 8)
-TabsPadding.PaddingRight = UDim.new(0, 8)
-TabsPadding.Parent = TabsFrame
-
--- Content Frame
-ContentFrame.Name = "ContentFrame"
-ContentFrame.Parent = MainFrame
-ContentFrame.BackgroundTransparency = 1
-ContentFrame.Position = UDim2.new(0, 180, 0, 60)
-ContentFrame.Size = UDim2.new(1, -190, 1, -120)
-
--- Scrolling Frame
-ScrollingFrame.Name = "ScrollingFrame"
-ScrollingFrame.Parent = ContentFrame
-ScrollingFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
-ScrollingFrame.BorderSizePixel = 0
-ScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-ScrollingFrame.ScrollBarThickness = 6
-ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 120, 255)
-ScrollingFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-
-local ScrollCorner = Instance.new("UICorner")
-ScrollCorner.CornerRadius = UDim.new(0, 10)
-ScrollCorner.Parent = ScrollingFrame
-
--- UI List Layout
-UIListLayout.Parent = ScrollingFrame
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Padding = UDim.new(0, 6)
-
-local ScrollPadding = Instance.new("UIPadding")
-ScrollPadding.PaddingTop = UDim.new(0, 10)
-ScrollPadding.PaddingBottom = UDim.new(0, 10)
-ScrollPadding.PaddingLeft = UDim.new(0, 10)
-ScrollPadding.PaddingRight = UDim.new(0, 10)
-ScrollPadding.Parent = ScrollingFrame
-
--- Buttons Frame
-ButtonsFrame.Name = "ButtonsFrame"
-ButtonsFrame.Parent = MainFrame
-ButtonsFrame.BackgroundTransparency = 1
-ButtonsFrame.Position = UDim2.new(0, 10, 1, -45)
-ButtonsFrame.Size = UDim2.new(1, -20, 0, 38)
-
--- Check All Button
-CheckAllButton.Name = "CheckAllButton"
-CheckAllButton.Parent = ButtonsFrame
-CheckAllButton.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
-CheckAllButton.BorderSizePixel = 0
-CheckAllButton.Position = UDim2.new(0, 0, 0, 0)
-CheckAllButton.Size = UDim2.new(0.32, -3, 1, 0)
-CheckAllButton.Font = Enum.Font.GothamBold
-CheckAllButton.Text = "🔍 Check All"
-CheckAllButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CheckAllButton.TextSize = 13
-CheckAllButton.AutoButtonColor = false
-
-local CheckCorner = Instance.new("UICorner")
-CheckCorner.CornerRadius = UDim.new(0, 8)
-CheckCorner.Parent = CheckAllButton
-
--- Clear Button
-ClearButton.Name = "ClearButton"
-ClearButton.Parent = ButtonsFrame
-ClearButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-ClearButton.BorderSizePixel = 0
-ClearButton.Position = UDim2.new(0.33, 0, 0, 0)
-ClearButton.Size = UDim2.new(0.32, -3, 1, 0)
-ClearButton.Font = Enum.Font.GothamBold
-ClearButton.Text = "🗑️ Clear"
-ClearButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ClearButton.TextSize = 13
-ClearButton.AutoButtonColor = false
-
-local ClearCorner = Instance.new("UICorner")
-ClearCorner.CornerRadius = UDim.new(0, 8)
-ClearCorner.Parent = ClearButton
-
--- Export Button
-ExportButton.Name = "ExportButton"
-ExportButton.Parent = ButtonsFrame
-ExportButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
-ExportButton.BorderSizePixel = 0
-ExportButton.Position = UDim2.new(0.66, 0, 0, 0)
-ExportButton.Size = UDim2.new(0.34, 0, 1, 0)
-ExportButton.Font = Enum.Font.GothamBold
-ExportButton.Text = "📋 Export"
-ExportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ExportButton.TextSize = 13
-ExportButton.AutoButtonColor = false
-
-local ExportCorner = Instance.new("UICorner")
-ExportCorner.CornerRadius = UDim.new(0, 8)
-ExportCorner.Parent = ExportButton
-
--- Status Text
-StatusText.Name = "StatusText"
-StatusText.Parent = ButtonsFrame
-StatusText.BackgroundTransparency = 1
-StatusText.Position = UDim2.new(0, 0, 1, 5)
-StatusText.Size = UDim2.new(1, 0, 0, 15)
-StatusText.Font = Enum.Font.Gotham
-StatusText.Text = "Ready | 0/150 checked"
-StatusText.TextColor3 = Color3.fromRGB(150, 150, 160)
-StatusText.TextSize = 10
-StatusText.TextXAlignment = Enum.TextXAlignment.Left
-
--- ============================
--- ПОЛНЫЙ СПИСОК ФУНКЦИЙ (150+)
--- ============================
-
-local CheckFunctions = {
-    -- ===== HOOKS (10) =====
-    {cat = "Hooks", name = "gethook", desc = "Проверяет хуки функций", check = function()
-        return gethook ~= nil, gethook and "Доступно" or "Недоступно"
-    end},
-    {cat = "Hooks", name = "getnamecallmethod", desc = "Получает метод namecall", check = function()
-        return getnamecallmethod ~= nil, getnamecallmethod and "Доступно" or "Недоступно"
-    end},
-    {cat = "Hooks", name = "hookfunction", desc = "Хук функций", check = function()
-        return hookfunction ~= nil, hookfunction and "Доступно" or "Недоступно"
-    end},
-    {cat = "Hooks", name = "hookmetamethod", desc = "Хук метаметодов", check = function()
-        return hookmetamethod ~= nil, hookmetamethod and "Доступно" or "Недоступно"
-    end},
-    {cat = "Hooks", name = "checkcaller", desc = "Проверка вызова", check = function()
-        if checkcaller then
-            local safe = checkcaller()
-            return safe, safe and "Безопасно" or "Внешний"
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Hooks", name = "replaceclosure", desc = "Замена замыкания", check = function()
-        return replaceclosure ~= nil, replaceclosure and "Доступно" or "Недоступно"
-    end},
-    {cat = "Hooks", name = "restorefunction", desc = "Восстановление функции", check = function()
-        return restorefunction ~= nil, restorefunction and "Доступно" or "Недоступно"
-    end},
-    {cat = "Hooks", name = "ishooked", desc = "Проверка хука", check = function()
-        return ishooked ~= nil, ishooked and "Доступно" or "Недоступно"
-    end},
-    {cat = "Hooks", name = "setnamecallmethod", desc = "Установка namecall", check = function()
-        return setnamecallmethod ~= nil, setnamecallmethod and "Доступно" or "Недоступно"
-    end},
-    {cat = "Hooks", name = "gethookfunction", desc = "Получение хук функции", check = function()
-        return gethookfunction ~= nil, gethookfunction and "Доступно" or "Недоступно"
-    end},
-    
-    -- ===== ENVIRONMENT (10) =====
-    {cat = "Environment", name = "getgenv", desc = "Глобальное окружение", check = function()
-        if getgenv then
-            local count = 0
-            for _ in pairs(getgenv()) do count = count + 1 end
-            return true, count .. " переменных"
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Environment", name = "getrenv", desc = "Roblox окружение", check = function()
-        return getrenv ~= nil, getrenv and "Доступно" or "Недоступно"
-    end},
-    {cat = "Environment", name = "getfenv", desc = "Окружение функции", check = function()
-        return getfenv ~= nil, getfenv and "Доступно" or "Недоступно"
-    end},
-    {cat = "Environment", name = "setfenv", desc = "Установка окружения", check = function()
-        return setfenv ~= nil, setfenv and "Доступно" or "Недоступно"
-    end},
-    {cat = "Environment", name = "getsenv", desc = "Окружение скрипта", check = function()
-        return getsenv ~= nil, getsenv and "Доступно" or "Недоступно"
-    end},
-    {cat = "Environment", name = "getmenv", desc = "Module окружение", check = function()
-        return getmenv ~= nil, getmenv and "Доступно" or "Недоступно"
-    end},
-    {cat = "Environment", name = "gettenv", desc = "Thread окружение", check = function()
-        return gettenv ~= nil, gettenv and "Доступно" or "Недоступно"
-    end},
-    {cat = "Environment", name = "getreg", desc = "Registry таблица", check = function()
-        return getreg ~= nil, getreg and "Доступно" or "Недоступно"
-    end},
-    {cat = "Environment", name = "getgc", desc = "Garbage Collector", check = function()
-        if getgc then
-            local count = #getgc()
-            return true, count .. " объектов"
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Environment", name = "getinstances", desc = "Все Instance", check = function()
-        if getinstances then
-            local count = #getinstances()
-            return true, count .. " инстансов"
-        end
-        return nil, "Недоступно"
-    end},
-    
-    -- ===== METATABLES (8) =====
-    {cat = "Metatables", name = "getrawmetatable", desc = "Получение метатаблицы", check = function()
-        if getrawmetatable then
-            local mt = getrawmetatable(game)
-            return mt ~= nil, mt and "Получена" or "Ошибка"
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Metatables", name = "setrawmetatable", desc = "Установка метатаблицы", check = function()
-        return setrawmetatable ~= nil, setrawmetatable and "Доступно" or "Недоступно"
-    end},
-    {cat = "Metatables", name = "setreadonly", desc = "Снятие защиты", check = function()
-        return setreadonly ~= nil, setreadonly and "Доступно" or "Недоступно"
-    end},
-    {cat = "Metatables", name = "isreadonly", desc = "Проверка защиты", check = function()
-        if isreadonly and getrawmetatable then
-            local mt = getrawmetatable(game)
-            if mt then
-                local ro = isreadonly(mt)
-                return ro, ro and "Защищена" or "Уязвима"
-            end
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Metatables", name = "make_readonly", desc = "Сделать readonly", check = function()
-        return make_readonly ~= nil, make_readonly and "Доступно" or "Недоступно"
-    end},
-    {cat = "Metatables", name = "make_writeable", desc = "Сделать writeable", check = function()
-        return make_writeable ~= nil, make_writeable and "Доступно" or "Недоступно"
-    end},
-    {cat = "Metatables", name = "getmetatable", desc = "Получить метатаблицу", check = function()
-        return getmetatable ~= nil, getmetatable and "Доступно" or "Недоступно"
-    end},
-    {cat = "Metatables", name = "setmetatable", desc = "Установить метатаблицу", check = function()
-        return setmetatable ~= nil, setmetatable and "Доступно" or "Недоступно"
-    end},
-    
-    -- ===== SCRIPTS (10) =====
-    {cat = "Scripts", name = "getscripts", desc = "Все скрипты", check = function()
-        if getscripts then
-            local count = #getscripts()
-            return true, count .. " скриптов"
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Scripts", name = "getrunningscripts", desc = "Активные скрипты", check = function()
-        if getrunningscripts then
-            local count = #getrunningscripts()
-            return true, count .. " активных"
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Scripts", name = "getcallingscript", desc = "Вызывающий скрипт", check = function()
-        return getcallingscript ~= nil, getcallingscript and "Доступно" or "Недоступно"
-    end},
-    {cat = "Scripts", name = "getscriptclosure", desc = "Замыкание скрипта", check = function()
-        return getscriptclosure ~= nil, getscriptclosure and "Доступно" or "Недоступно"
-    end},
-    {cat = "Scripts", name = "getscripthash", desc = "Хеш скрипта", check = function()
-        return getscripthash ~= nil, getscripthash and "Доступно" or "Недоступно"
-    end},
-    {cat = "Scripts", name = "getscriptbytecode", desc = "Байткод скрипта", check = function()
-        return getscriptbytecode ~= nil, getscriptbytecode and "Доступно" or "Недоступно"
-    end},
-    {cat = "Scripts", name = "dumpstring", desc = "Дамп строки", check = function()
-        return dumpstring ~= nil, dumpstring and "Доступно" or "Недоступно"
-    end},
-    {cat = "Scripts", name = "decompile", desc = "Декомпиляция", check = function()
-        return decompile ~= nil, decompile and "Доступно" or "Недоступно"
-    end},
-    {cat = "Scripts", name = "getloadedmodules", desc = "Загруженные модули", check = function()
-        if getloadedmodules then
-            local count = #getloadedmodules()
-            return true, count .. " модулей"
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Scripts", name = "require", desc = "Require функция", check = function()
-        return require ~= nil, require and "Доступно" or "Недоступно"
-    end},
-    
-    -- ===== INSTANCES (12) =====
-    {cat = "Instances", name = "getnilinstances", desc = "Instance в nil", check = function()
-        if getnilinstances then
-            local count = #getnilinstances()
-            return true, count .. " в nil"
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Instances", name = "isscriptable", desc = "Проверка свойства", check = function()
-        return isscriptable ~= nil, isscriptable and "Доступно" or "Недоступно"
-    end},
-    {cat = "Instances", name = "setscriptable", desc = "Изменение свойства", check = function()
-        return setscriptable ~= nil, setscriptable and "Доступно" or "Недоступно"
-    end},
-    {cat = "Instances", name = "gethiddenproperty", desc = "Скрытые свойства", check = function()
-        return gethiddenproperty ~= nil, gethiddenproperty and "Доступно" or "Недоступно"
-    end},
-    {cat = "Instances", name = "sethiddenproperty", desc = "Установка свойств", check = function()
-        return sethiddenproperty ~= nil, sethiddenproperty and "Доступно" or "Недоступно"
-    end},
-    {cat = "Instances", name = "gethui", desc = "Hidden UI", check = function()
-        return gethui ~= nil, gethui and "Доступно" or "Недоступно"
-    end},
-    {cat = "Instances", name = "getproperties", desc = "Все свойства", check = function()
-        return getproperties ~= nil, getproperties and "Доступно" or "Недоступно"
-    end},
-    {cat = "Instances", name = "getcustomasset", desc = "Пользовательские asset", check = function()
-        return getcustomasset ~= nil, getcustomasset and "Доступно" or "Недоступно"
-    end},
-    {cat = "Instances", name = "getspecialinfo", desc = "Специальная информация", check = function()
-        return getspecialinfo ~= nil, getspecialinfo and "Доступно" or "Недоступно"
-    end},
-    {cat = "Instances", name = "saveinstance", desc = "Сохранение Instance", check = function()
-        return saveinstance ~= nil, saveinstance and "Доступно" or "Недоступно"
-    end},
-    {cat = "Instances", name = "getdescendants", desc = "Получить потомков", check = function()
-        return true, "Native функция"
-    end},
-    {cat = "Instances", name = "getchildren", desc = "Получить детей", check = function()
-        return true, "Native функция"
-    end},
-    
-    -- ===== CONNECTIONS (8) =====
-    {cat = "Connections", name = "getconnections", desc = "Получение подключений", check = function()
-        return getconnections ~= nil, getconnections and "Доступно" or "Недоступно"
-    end},
-    {cat = "Connections", name = "firesignal", desc = "Вызов сигнала", check = function()
-        return firesignal ~= nil, firesignal and "Доступно" or "Недоступно"
-    end},
-    {cat = "Connections", name = "getcallbackvalue", desc = "Значение callback", check = function()
-        return getcallbackvalue ~= nil, getcallbackvalue and "Доступно" or "Недоступно"
-    end},
-    {cat = "Connections", name = "getconnectionstate", desc = "Состояние подключения", check = function()
-        return getconnectionstate ~= nil, getconnectionstate and "Доступно" or "Недоступно"
-    end},
-    {cat = "Connections", name = "disableconnection", desc = "Отключить подключение", check = function()
-        return true, "Через getconnections"
-    end},
-    {cat = "Connections", name = "enableconnection", desc = "Включить подключение", check = function()
-        return true, "Через getconnections"
-    end},
-    {cat = "Connections", name = "fireconnection", desc = "Вызов подключения", check = function()
-        return true, "Через getconnections"
-    end},
-    {cat = "Connections", name = "getconnectioncount", desc = "Количество подключений", check = function()
-        return true, "Через #getconnections()"
-    end},
-    
-    -- ===== REMOTES (8) =====
-    {cat = "Remotes", name = "fireserver", desc = "Вызов RemoteEvent", check = function()
-        local count = 0
-        for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("RemoteEvent") then count = count + 1 end
-        end
-        return true, count .. " RemoteEvent"
-    end},
-    {cat = "Remotes", name = "invokeserver", desc = "Вызов RemoteFunction", check = function()
-        local count = 0
-        for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("RemoteFunction") then count = count + 1 end
-        end
-        return true, count .. " RemoteFunction"
-    end},
-    {cat = "Remotes", name = "getremotes", desc = "Поиск Remote", check = function()
-        local re, rf = 0, 0
-        for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("RemoteEvent") then re = re + 1 end
-            if v:IsA("RemoteFunction") then rf = rf + 1 end
-        end
-        return true, re .. " RE, " .. rf .. " RF"
-    end},
-    {cat = "Remotes", name = "hookremote", desc = "Хук Remote", check = function()
-        return hookfunction ~= nil, hookfunction and "Через hookfunction" or "Недоступно"
-    end},
-    {cat = "Remotes", name = "logremote", desc = "Логирование Remote", check = function()
-        return getconnections ~= nil, getconnections and "Через getconnections" or "Недоступно"
-    end},
-    {cat = "Remotes", name = "getremotename", desc = "Имя Remote", check = function()
-        return true, "Через .Name"
-    end},
-    {cat = "Remotes", name = "getremoteparent", desc = "Родитель Remote", check = function()
-        return true, "Через .Parent"
-    end},
-    {cat = "Remotes", name = "isremote", desc = "Проверка Remote", check = function()
-        return true, "Через :IsA()"
-    end},
-    
-    -- ===== CLOSURES (15) =====
-    {cat = "Closures", name = "newcclosure", desc = "Создание C замыкания", check = function()
-        return newcclosure ~= nil, newcclosure and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "clonefunction", desc = "Клонирование функции", check = function()
-        return clonefunction ~= nil, clonefunction and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "islclosure", desc = "Проверка Lua closure", check = function()
-        return islclosure ~= nil, islclosure and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "iscclosure", desc = "Проверка C closure", check = function()
-        return iscclosure ~= nil, iscclosure and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "getconstants", desc = "Константы функции", check = function()
-        return getconstants ~= nil, getconstants and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "getconstant", desc = "Получить константу", check = function()
-        return getconstant ~= nil, getconstant and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "setconstant", desc = "Установить константу", check = function()
-        return setconstant ~= nil, setconstant and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "getupvalues", desc = "Upvalue функции", check = function()
-        return getupvalues ~= nil, getupvalues and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "getupvalue", desc = "Получить upvalue", check = function()
-        return getupvalue ~= nil, getupvalue and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "setupvalue", desc = "Установить upvalue", check = function()
-        return setupvalue ~= nil, setupvalue and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "getproto", desc = "Прототипы функции", check = function()
-        return getproto ~= nil, getproto and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "getprotos", desc = "Все прототипы", check = function()
-        return getprotos ~= nil, getprotos and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "setproto", desc = "Установить прототип", check = function()
-        return setproto ~= nil, setproto and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "getinfo", desc = "Информация о функции", check = function()
-        return debug and debug.getinfo ~= nil, debug.getinfo and "Доступно" or "Недоступно"
-    end},
-    {cat = "Closures", name = "getstack", desc = "Stack функции", check = function()
-        return getstack ~= nil, getstack and "Доступно" or "Недоступно"
-    end},
-    
-    -- ===== CACHE (5) =====
-    {cat = "Cache", name = "cloneref", desc = "Клонирование ссылки", check = function()
-        return cloneref ~= nil, cloneref and "Доступно" or "Недоступно"
-    end},
-    {cat = "Cache", name = "compareinstances", desc = "Сравнение Instance", check = function()
-        return compareinstances ~= nil, compareinstances and "Доступно" or "Недоступно"
-    end},
-    {cat = "Cache", name = "invalidatecache", desc = "Очистка кэша", check = function()
-        return invalidatecache ~= nil, invalidatecache and "Доступно" or "Недоступно"
-    end},
-    {cat = "Cache", name = "getcache", desc = "Получить кэш", check = function()
-        return getcache ~= nil, getcache and "Доступно" or "Недоступно"
-    end},
-    {cat = "Cache", name = "iscached", desc = "Проверка кэша", check = function()
-        return iscached ~= nil, iscached and "Доступно" or "Недоступно"
-    end},
-    
-    -- ===== CONSOLE (6) =====
-    {cat = "Console", name = "rconsolecreate", desc = "Создание консоли", check = function()
-        return rconsolecreate ~= nil, rconsolecreate and "Доступно" or "Недоступно"
-    end},
-    {cat = "Console", name = "rconsoleprint", desc = "Вывод в консоль", check = function()
-        return rconsoleprint ~= nil, rconsoleprint and "Доступно" or "Недоступно"
-    end},
-    {cat = "Console", name = "rconsoleclear", desc = "Очистка консоли", check = function()
-        return rconsoleclear ~= nil, rconsoleclear and "Доступно" or "Недоступно"
-    end},
-    {cat = "Console", name = "rconsoleinput", desc = "Ввод в консоль", check = function()
-        return rconsoleinput ~= nil, rconsoleinput and "Доступно" or "Недоступно"
-    end},
-    {cat = "Console", name = "rconsoleclose", desc = "Закрыть консоль", check = function()
-        return rconsoleclose ~= nil, rconsoleclose and "Доступно" or "Недоступно"
-    end},
-    {cat = "Console", name = "rconsolename", desc = "Имя консоли", check = function()
-        return rconsolename ~= nil, rconsolename and "Доступно" or "Недоступно"
-    end},
-    
-    -- ===== FILESYSTEM (10) =====
-    {cat = "Filesystem", name = "readfile", desc = "Чтение файлов", check = function()
-        return readfile ~= nil, readfile and "Доступно" or "Недоступно"
-    end},
-    {cat = "Filesystem", name = "writefile", desc = "Запись файлов", check = function()
-        return writefile ~= nil, writefile and "Доступно" or "Недоступно"
-    end},
-    {cat = "Filesystem", name = "appendfile", desc = "Добавление в файл", check = function()
-        return appendfile ~= nil, appendfile and "Доступно" or "Недоступно"
-    end},
-    {cat = "Filesystem", name = "delfile", desc = "Удаление файлов", check = function()
-        return delfile ~= nil, delfile and "Доступно" or "Недоступно"
-    end},
-    {cat = "Filesystem", name = "isfile", desc = "Проверка файла", check = function()
-        return isfile ~= nil, isfile and "Доступно" or "Недоступно"
-    end},
-    {cat = "Filesystem", name = "isfolder", desc = "Проверка папки", check = function()
-        return isfolder ~= nil, isfolder and "Доступно" or "Недоступно"
-    end},
-    {cat = "Filesystem", name = "listfiles", desc = "Список файлов", check = function()
-        return listfiles ~= nil, listfiles and "Доступно" or "Недоступно"
-    end},
-    {cat = "Filesystem", name = "makefolder", desc = "Создание папки", check = function()
-        return makefolder ~= nil, makefolder and "Доступно" or "Недоступно"
-    end},
-    {cat = "Filesystem", name = "delfolder", desc = "Удаление папки", check = function()
-        return delfolder ~= nil, delfolder and "Доступно" or "Недоступно"
-    end},
-    {cat = "Filesystem", name = "loadfile", desc = "Загрузка файла", check = function()
-        return loadfile ~= nil, loadfile and "Доступно" or "Недоступно"
-    end},
-    
-    -- ===== CLIPBOARD (2) =====
-    {cat = "Clipboard", name = "setclipboard", desc = "Копирование", check = function()
-        return setclipboard ~= nil, setclipboard and "Доступно" or "Недоступно"
-    end},
-    {cat = "Clipboard", name = "getclipboard", desc = "Получение из буфера", check = function()
-        return getclipboard ~= nil, getclipboard and "Доступно" or "Недоступно"
-    end},
-    
-    -- ===== DRAWING (10) =====
-    {cat = "Drawing", name = "Drawing.new", desc = "Создание Drawing", check = function()
-        return Drawing ~= nil, Drawing and "Доступно" or "Недоступно"
-    end},
-    {cat = "Drawing", name = "isrenderobj", desc = "Проверка Drawing", check = function()
-        return isrenderobj ~= nil, isrenderobj and "Доступно" or "Недоступно"
-    end},
-    {cat = "Drawing", name = "getrenderproperty", desc = "Свойство рендера", check = function()
-        return getrenderproperty ~= nil, getrenderproperty and "Доступно" or "Недоступно"
-    end},
-    {cat = "Drawing", name = "setrenderproperty", desc = "Установка свойства", check = function()
-        return setrenderproperty ~= nil, setrenderproperty and "Доступно" or "Недоступно"
-    end},
-    {cat = "Drawing", name = "cleardrawcache", desc = "Очистка кэша", check = function()
-        return cleardrawcache ~= nil, cleardrawcache and "Доступно" or "Недоступно"
-    end},
-    {cat = "Drawing", name = "Drawing.Fonts", desc = "Шрифты Drawing", check = function()
-        return Drawing and Drawing.Fonts ~= nil, Drawing and "Доступно" or "Недоступно"
-    end},
-    {cat = "Drawing", name = "Line", desc = "Drawing Line", check = function()
-        if Drawing then
-            local ok = pcall(function() Drawing.new("Line") end)
-            return ok, ok and "Доступно" or "Ошибка"
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Drawing", name = "Circle", desc = "Drawing Circle", check = function()
-        if Drawing then
-            local ok = pcall(function() Drawing.new("Circle") end)
-            return ok, ok and "Доступно" or "Ошибка"
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Drawing", name = "Square", desc = "Drawing Square", check = function()
-        if Drawing then
-            local ok = pcall(function() Drawing.new("Square") end)
-            return ok, ok and "Доступно" or "Ошибка"
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Drawing", name = "Text", desc = "Drawing Text", check = function()
-        if Drawing then
-            local ok = pcall(function() Drawing.new("Text") end)
-            return ok, ok and "Доступно" or "Ошибка"
-        end
-        return nil, "Недоступно"
-    end},
-    
-    -- ===== INPUT (10) =====
-    {cat = "Input", name = "mouse1click", desc = "Клик мыши", check = function()
-        return mouse1click ~= nil, mouse1click and "Доступно" or "Недоступно"
-    end},
-    {cat = "Input", name = "mouse1press", desc = "Нажатие мыши", check = function()
-        return mouse1press ~= nil, mouse1press and "Доступно" or "Недоступно"
-    end},
-    {cat = "Input", name = "mouse1release", desc = "Отпускание мыши", check = function()
-        return mouse1release ~= nil, mouse1release and "Доступно" or "Недоступно"
-    end},
-    {cat = "Input", name = "mouse2click", desc = "ПКМ клик", check = function()
-        return mouse2click ~= nil, mouse2click and "Доступно" or "Недоступно"
-    end},
-    {cat = "Input", name = "mouse2press", desc = "ПКМ нажатие", check = function()
-        return mouse2press ~= nil, mouse2press and "Доступно" or "Недоступно"
-    end},
-    {cat = "Input", name = "mouse2release", desc = "ПКМ отпускание", check = function()
-        return mouse2release ~= nil, mouse2release and "Доступно" or "Недоступно"
-    end},
-    {cat = "Input", name = "keypress", desc = "Нажатие клавиши", check = function()
-        return keypress ~= nil, keypress and "Доступно" or "Недоступно"
-    end},
-    {cat = "Input", name = "keyrelease", desc = "Отпускание клавиши", check = function()
-        return keyrelease ~= nil, keyrelease and "Доступно" or "Недоступно"
-    end},
-    {cat = "Input", name = "mousescroll", desc = "Прокрутка мыши", check = function()
-        return mousescroll ~= nil, mousescroll and "Доступно" or "Недоступно"
-    end},
-    {cat = "Input", name = "mousemoverel", desc = "Относительное движение", check = function()
-        return mousemoverel ~= nil, mousemoverel and "Доступно" or "Недоступно"
-    end},
-    
-    -- ===== WEBSOCKET (3) =====
-    {cat = "WebSocket", name = "WebSocket.connect", desc = "WebSocket", check = function()
-        return WebSocket ~= nil, WebSocket and "Доступно" or "Недоступно"
-    end},
-    {cat = "WebSocket", name = "websocket.connect", desc = "websocket (lowercase)", check = function()
-        return websocket ~= nil, websocket and "Доступно" or "Недоступно"
-    end},
-    {cat = "WebSocket", name = "ws.connect", desc = "ws подключение", check = function()
-        return ws ~= nil, ws and "Доступно" or "Недоступно"
-    end},
-    
-    -- ===== REQUEST (5) =====
-    {cat = "Request", name = "request", desc = "HTTP запросы", check = function()
-        return request ~= nil, request and "Доступно" or "Недоступно"
-    end},
-    {cat = "Request", name = "http_request", desc = "HTTP (альт)", check = function()
-        return http_request ~= nil, http_request and "Доступно" or "Недоступно"
-    end},
-    {cat = "Request", name = "syn.request", desc = "Synapse request", check = function()
-        return syn and syn.request ~= nil, syn and syn.request and "Доступно" or "Недоступно"
-    end},
-    {cat = "Request", name = "game:HttpGet", desc = "HttpGet", check = function()
-        return pcall(function() game:HttpGet("https://google.com") end), "Native"
-    end},
-    {cat = "Request", name = "game:HttpPost", desc = "HttpPost", check = function()
-        return true, "Native функция"
-    end},
-    
-    -- ===== DEBUG (10) =====
-    {cat = "Debug", name = "debug.getupvalue", desc = "Получение upvalue", check = function()
-        return debug and debug.getupvalue ~= nil, debug and debug.getupvalue and "Доступно" or "Недоступно"
-    end},
-    {cat = "Debug", name = "debug.setupvalue", desc = "Установка upvalue", check = function()
-        return debug and debug.setupvalue ~= nil, debug and debug.setupvalue and "Доступно" or "Недоступно"
-    end},
-    {cat = "Debug", name = "debug.getconstant", desc = "Получение константы", check = function()
-        return debug and debug.getconstant ~= nil, debug and debug.getconstant and "Доступно" or "Недоступно"
-    end},
-    {cat = "Debug", name = "debug.setconstant", desc = "Установка константы", check = function()
-        return debug and debug.setconstant ~= nil, debug and debug.setconstant and "Доступно" or "Недоступно"
-    end},
-    {cat = "Debug", name = "debug.getproto", desc = "Получение прототипа", check = function()
-        return debug and debug.getproto ~= nil, debug and debug.getproto and "Доступно" or "Недоступно"
-    end},
-    {cat = "Debug", name = "debug.getinfo", desc = "Информация", check = function()
-        return debug and debug.getinfo ~= nil, debug and debug.getinfo and "Доступно" or "Недоступно"
-    end},
-    {cat = "Debug", name = "debug.getstack", desc = "Stack", check = function()
-        return debug and debug.getstack ~= nil, debug and debug.getstack and "Доступно" or "Недоступно"
-    end},
-    {cat = "Debug", name = "debug.setstack", desc = "Установка stack", check = function()
-        return debug and debug.setstack ~= nil, debug and debug.setstack and "Доступно" or "Недоступно"
-    end},
-    {cat = "Debug", name = "debug.getlocal", desc = "Локальные переменные", check = function()
-        return debug and debug.getlocal ~= nil, debug and debug.getlocal and "Доступно" or "Недоступно"
-    end},
-    {cat = "Debug", name = "debug.setlocal", desc = "Установка локальных", check = function()
-        return debug and debug.setlocal ~= nil, debug and debug.setlocal and "Доступно" or "Недоступно"
-    end},
-    
-    -- ===== CRYPT (8) =====
-    {cat = "Crypt", name = "crypt.encrypt", desc = "Шифрование", check = function()
-        return crypt and crypt.encrypt ~= nil, crypt and crypt.encrypt and "Доступно" or "Недоступно"
-    end},
-    {cat = "Crypt", name = "crypt.decrypt", desc = "Дешифрование", check = function()
-        return crypt and crypt.decrypt ~= nil, crypt and crypt.decrypt and "Доступно" or "Недоступно"
-    end},
-    {cat = "Crypt", name = "crypt.base64encode", desc = "Base64 encode", check = function()
-        return crypt and crypt.base64encode ~= nil, crypt and crypt.base64encode and "Доступно" or "Недоступно"
-    end},
-    {cat = "Crypt", name = "crypt.base64decode", desc = "Base64 decode", check = function()
-        return crypt and crypt.base64decode ~= nil, crypt and crypt.base64decode and "Доступно" or "Недоступно"
-    end},
-    {cat = "Crypt", name = "crypt.hash", desc = "Хеширование", check = function()
-        return crypt and crypt.hash ~= nil, crypt and crypt.hash and "Доступно" or "Недоступно"
-    end},
-    {cat = "Crypt", name = "crypt.generatekey", desc = "Генерация ключа", check = function()
-        return crypt and crypt.generatekey ~= nil, crypt and crypt.generatekey and "Доступно" or "Недоступно"
-    end},
-    {cat = "Crypt", name = "crypt.random", desc = "Случайные данные", check = function()
-        return crypt and crypt.random ~= nil, crypt and crypt.random and "Доступно" or "Недоступно"
-    end},
-    {cat = "Crypt", name = "base64_encode", desc = "base64_encode", check = function()
-        return base64_encode ~= nil, base64_encode and "Доступно" or "Недоступно"
-    end},
-    
-    -- ===== MISC (20) =====
-    {cat = "Misc", name = "identifyexecutor", desc = "Определение эксплойта", check = function()
-        if identifyexecutor then
-            local name, ver = identifyexecutor()
-            return true, (name or "Unknown") .. " " .. (ver or "")
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Misc", name = "getexecutorname", desc = "Имя эксплойта", check = function()
-        if getexecutorname then
-            return true, getexecutorname()
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Misc", name = "setfpscap", desc = "Ограничение FPS", check = function()
-        return setfpscap ~= nil, setfpscap and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "getfpscap", desc = "Текущий FPS cap", check = function()
-        return getfpscap ~= nil, getfpscap and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "loadstring", desc = "Выполнение кода", check = function()
-        return loadstring ~= nil, loadstring and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "getthreadidentity", desc = "Thread identity", check = function()
-        if getthreadidentity then
-            local id = getthreadidentity()
-            return true, "Identity: " .. id
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Misc", name = "setthreadidentity", desc = "Set identity", check = function()
-        return setthreadidentity ~= nil, setthreadidentity and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "messagebox", desc = "Системное окно", check = function()
-        return messagebox ~= nil, messagebox and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "queue_on_teleport", desc = "Код при телепорте", check = function()
-        return queue_on_teleport ~= nil, queue_on_teleport and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "syn_checkcaller", desc = "Synapse checkcaller", check = function()
-        return syn_checkcaller ~= nil, syn_checkcaller and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "is_synapse_function", desc = "Проверка Synapse функции", check = function()
-        return is_synapse_function ~= nil, is_synapse_function and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "getfflag", desc = "Получить FFlag", check = function()
-        return getfflag ~= nil, getfflag and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "setfflag", desc = "Установить FFlag", check = function()
-        return setfflag ~= nil, setfflag and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "getnamecallmethod", desc = "Namecall метод", check = function()
-        return getnamecallmethod ~= nil, getnamecallmethod and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "isnetworkowner", desc = "Network владелец", check = function()
-        return isnetworkowner ~= nil, isnetworkowner and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "getnilinstances", desc = "Nil instances", check = function()
-        if getnilinstances then
-            return true, #getnilinstances() .. " объектов"
-        end
-        return nil, "Недоступно"
-    end},
-    {cat = "Misc", name = "fireclickdetector", desc = "Клик детектор", check = function()
-        return fireclickdetector ~= nil, fireclickdetector and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "fireproximityprompt", desc = "Proximity prompt", check = function()
-        return fireproximityprompt ~= nil, fireproximityprompt and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "firetouchinterest", desc = "Touch interest", check = function()
-        return firetouchinterest ~= nil, firetouchinterest and "Доступно" or "Недоступно"
-    end},
-    {cat = "Misc", name = "getping", desc = "Получить пинг", check = function()
-        local ping = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
-        return true, math.floor(ping) .. " ms"
-    end},
-    
-    -- ===== SECURITY (10) =====
-    {cat = "Security", name = "Anti-Cheat Detection", desc = "Проверка античита", check = function()
-        local count = 0
-        for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("LocalScript") then
-                local n = v.Name:lower()
-                if n:find("anti") or n:find("detect") or n:find("cheat") then count = count + 1 end
-            end
-        end
-        return count == 0, count > 0 and count .. " подозр." or "Чисто"
-    end},
-    {cat = "Security", name = "Metatable Protection", desc = "Защита метатаблицы", check = function()
-        if getrawmetatable and isreadonly then
-            local mt = getrawmetatable(game)
-            local ro = isreadonly(mt)
-            return ro, ro and "Защищена" or "Уязвима"
-        end
-        return nil, "Не проверено"
-    end},
-    {cat = "Security", name = "Memory Usage", desc = "Память", check = function()
-        local mem = game:GetService("Stats"):GetTotalMemoryUsageMb()
-        return mem < 1500, math.floor(mem) .. " MB"
-    end},
-    {cat = "Security", name = "Script Count", desc = "Скрипты", check = function()
-        local count = 0
-        for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("LocalScript") or v:IsA("ModuleScript") then count = count + 1 end
-        end
-        return true, count .. " скриптов"
-    end},
-    {cat = "Security", name = "Remote Encryption", desc = "Шифрование", check = function()
-        local enc, total = 0, 0
-        for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
-                total = total + 1
-                if v.Name:match("%x%x%x%x") then enc = enc + 1 end
-            end
-        end
-        return true, enc .. "/" .. total
-    end},
-    {cat = "Security", name = "Hooked Functions", desc = "Хукнутые функции", check = function()
-        if gethook then
-            local count = 0
-            local testFuncs = {game.HttpGet, game.GetService, workspace.FindFirstChild}
-            for _, f in pairs(testFuncs) do
-                if gethook(f) then count = count + 1 end
-            end
-            return count == 0, count .. " хуков"
-        end
-        return nil, "Не проверено"
-    end},
-    {cat = "Security", name = "Environment Check", desc = "Проверка окружения", check = function()
-        if getgenv then
-            local sus = 0
-            for k,v in pairs(getgenv()) do
-                if type(k) == "string" and (k:lower():find("cheat") or k:lower():find("hack")) then
-                    sus = sus + 1
-                end
-            end
-            return sus == 0, sus .. " подозр."
-        end
-        return nil, "Не проверено"
-    end},
-    {cat = "Security", name = "FPS Check", desc = "Проверка FPS", check = function()
-        local fps = workspace:GetRealPhysicsFPS()
-        return fps > 30, math.floor(fps) .. " FPS"
-    end},
-    {cat = "Security", name = "Player Permissions", desc = "Права игрока", check = function()
-        local plr = game:GetService("Players").LocalPlayer
-        return true, plr and "LocalPlayer OK" or "Нет игрока"
-    end},
-    {cat = "Security", name = "CoreGui Access", desc = "Доступ к CoreGui", check = function()
-        local ok = pcall(function()
-            return game:GetService("CoreGui")
-        end)
-        return ok, ok and "Доступно" or "Заблокировано"
-    end},
+-- ============================================================
+-- [[ ТЕМЫ ]]
+-- ============================================================
+local Themes = {
+    Dark = {
+        Main = Color3.fromRGB(18, 18, 22),
+        Sidebar = Color3.fromRGB(12, 12, 15),
+        Stroke = Color3.fromRGB(45, 45, 55),
+        Accent = Color3.fromRGB(100, 120, 255),
+        Text = Color3.fromRGB(240, 240, 240),
+        DimText = Color3.fromRGB(160, 160, 170),
+        Card = Color3.fromRGB(25, 25, 30),
+        ElementBg = Color3.fromRGB(30, 30, 38),
+        SliderFill = Color3.fromRGB(100, 120, 255),
+        ToggleOn = Color3.fromRGB(100, 120, 255),
+        ToggleOff = Color3.fromRGB(50, 50, 60),
+        Hover = Color3.fromRGB(35, 35, 45),
+        Glow = Color3.fromRGB(0, 0, 0),
+    },
+    Cyber = {
+        Main = Color3.fromRGB(5, 5, 5),
+        Sidebar = Color3.fromRGB(0, 0, 0),
+        Stroke = Color3.fromRGB(255, 255, 0),
+        Accent = Color3.fromRGB(255, 255, 0),
+        Text = Color3.fromRGB(255, 255, 0),
+        DimText = Color3.fromRGB(180, 180, 0),
+        Card = Color3.fromRGB(15, 15, 0),
+        ElementBg = Color3.fromRGB(20, 20, 5),
+        SliderFill = Color3.fromRGB(255, 255, 0),
+        ToggleOn = Color3.fromRGB(255, 255, 0),
+        ToggleOff = Color3.fromRGB(40, 40, 0),
+        Hover = Color3.fromRGB(25, 25, 5),
+        Glow = Color3.fromRGB(0, 0, 0),
+    },
+    Sakura = {
+        Main = Color3.fromRGB(255, 240, 245),
+        Sidebar = Color3.fromRGB(255, 225, 235),
+        Stroke = Color3.fromRGB(255, 180, 200),
+        Accent = Color3.fromRGB(255, 100, 150),
+        Text = Color3.fromRGB(100, 50, 70),
+        DimText = Color3.fromRGB(160, 100, 120),
+        Card = Color3.fromRGB(255, 255, 255),
+        ElementBg = Color3.fromRGB(255, 245, 248),
+        SliderFill = Color3.fromRGB(255, 100, 150),
+        ToggleOn = Color3.fromRGB(255, 100, 150),
+        ToggleOff = Color3.fromRGB(230, 210, 215),
+        Hover = Color3.fromRGB(255, 230, 238),
+        Glow = Color3.fromRGB(255, 200, 220),
+    },
+    Ocean = {
+        Main = Color3.fromRGB(10, 20, 30),
+        Sidebar = Color3.fromRGB(5, 15, 25),
+        Stroke = Color3.fromRGB(30, 60, 90),
+        Accent = Color3.fromRGB(0, 180, 255),
+        Text = Color3.fromRGB(200, 240, 255),
+        DimText = Color3.fromRGB(120, 170, 200),
+        Card = Color3.fromRGB(20, 35, 50),
+        ElementBg = Color3.fromRGB(15, 30, 45),
+        SliderFill = Color3.fromRGB(0, 180, 255),
+        ToggleOn = Color3.fromRGB(0, 180, 255),
+        ToggleOff = Color3.fromRGB(30, 50, 65),
+        Hover = Color3.fromRGB(20, 40, 55),
+        Glow = Color3.fromRGB(0, 10, 20),
+    },
+    Forest = {
+        Main = Color3.fromRGB(15, 25, 15),
+        Sidebar = Color3.fromRGB(10, 20, 10),
+        Stroke = Color3.fromRGB(40, 60, 40),
+        Accent = Color3.fromRGB(100, 255, 100),
+        Text = Color3.fromRGB(220, 255, 220),
+        DimText = Color3.fromRGB(140, 180, 140),
+        Card = Color3.fromRGB(25, 35, 25),
+        ElementBg = Color3.fromRGB(20, 32, 20),
+        SliderFill = Color3.fromRGB(100, 255, 100),
+        ToggleOn = Color3.fromRGB(100, 255, 100),
+        ToggleOff = Color3.fromRGB(35, 50, 35),
+        Hover = Color3.fromRGB(28, 42, 28),
+        Glow = Color3.fromRGB(5, 10, 5),
+    },
+    Gold = {
+        Main = Color3.fromRGB(20, 20, 20),
+        Sidebar = Color3.fromRGB(15, 15, 15),
+        Stroke = Color3.fromRGB(255, 180, 0),
+        Accent = Color3.fromRGB(255, 180, 0),
+        Text = Color3.fromRGB(255, 220, 150),
+        DimText = Color3.fromRGB(180, 150, 100),
+        Card = Color3.fromRGB(30, 30, 30),
+        ElementBg = Color3.fromRGB(28, 25, 20),
+        SliderFill = Color3.fromRGB(255, 180, 0),
+        ToggleOn = Color3.fromRGB(255, 180, 0),
+        ToggleOff = Color3.fromRGB(50, 45, 30),
+        Hover = Color3.fromRGB(38, 35, 25),
+        Glow = Color3.fromRGB(0, 0, 0),
+    },
+    Light = {
+        Main = Color3.fromRGB(245, 245, 250),
+        Sidebar = Color3.fromRGB(230, 230, 235),
+        Stroke = Color3.fromRGB(210, 210, 220),
+        Accent = Color3.fromRGB(80, 100, 255),
+        Text = Color3.fromRGB(30, 30, 40),
+        DimText = Color3.fromRGB(100, 100, 120),
+        Card = Color3.fromRGB(255, 255, 255),
+        ElementBg = Color3.fromRGB(240, 240, 245),
+        SliderFill = Color3.fromRGB(80, 100, 255),
+        ToggleOn = Color3.fromRGB(80, 100, 255),
+        ToggleOff = Color3.fromRGB(200, 200, 210),
+        Hover = Color3.fromRGB(235, 235, 242),
+        Glow = Color3.fromRGB(200, 200, 210),
+    }
 }
 
--- Функции создания элементов (ОПТИМИЗИРОВАНО)
-function Library:CreateCheckItem(data)
-    local Item = Instance.new("Frame")
-    Item.Name = data.name
-    Item.Parent = ScrollingFrame
-    Item.BackgroundColor3 = Color3.fromRGB(26, 26, 33)
-    Item.BorderSizePixel = 0
-    Item.Size = UDim2.new(1, -12, 0, 70)
-    Item.Visible = true
-    
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 8)
-    Corner.Parent = Item
-    
-    local Cat = Instance.new("TextLabel")
-    Cat.Parent = Item
-    Cat.BackgroundTransparency = 1
-    Cat.Position = UDim2.new(0, 10, 0, 4)
-    Cat.Size = UDim2.new(1, -20, 0, 11)
-    Cat.Font = Enum.Font.GothamBold
-    Cat.Text = "📁 " .. data.cat
-    Cat.TextColor3 = Color3.fromRGB(80, 140, 255)
-    Cat.TextSize = 9
-    Cat.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local Name = Instance.new("TextLabel")
-    Name.Parent = Item
-    Name.BackgroundTransparency = 1
-    Name.Position = UDim2.new(0, 10, 0, 18)
-    Name.Size = UDim2.new(0.6, 0, 0, 15)
-    Name.Font = Enum.Font.GothamBold
-    Name.Text = "⚡ " .. data.name
-    Name.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Name.TextSize = 11
-    Name.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local Desc = Instance.new("TextLabel")
-    Desc.Parent = Item
-    Desc.BackgroundTransparency = 1
-    Desc.Position = UDim2.new(0, 10, 0, 35)
-    Desc.Size = UDim2.new(0.6, 0, 0, 11)
-    Desc.Font = Enum.Font.Gotham
-    Desc.Text = data.desc
-    Desc.TextColor3 = Color3.fromRGB(130, 130, 140)
-    Desc.TextSize = 9
-    Desc.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local Status = Instance.new("TextLabel")
-    Status.Name = "Status"
-    Status.Parent = Item
-    Status.BackgroundTransparency = 1
-    Status.Position = UDim2.new(0, 10, 0, 48)
-    Status.Size = UDim2.new(0.6, 0, 0, 15)
-    Status.Font = Enum.Font.GothamBold
-    Status.Text = "⏳ Ожидание..."
-    Status.TextColor3 = Color3.fromRGB(170, 170, 180)
-    Status.TextSize = 9
-    Status.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local Btn = Instance.new("TextButton")
-    Btn.Name = "CheckButton"
-    Btn.Parent = Item
-    Btn.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
-    Btn.BorderSizePixel = 0
-    Btn.Position = UDim2.new(1, -75, 0.5, -14)
-    Btn.Size = UDim2.new(0, 65, 0, 28)
-    Btn.Font = Enum.Font.GothamBold
-    Btn.Text = "▶ Test"
-    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Btn.TextSize = 10
-    Btn.AutoButtonColor = false
-    
-    local BtnCorner = Instance.new("UICorner")
-    BtnCorner.CornerRadius = UDim.new(0, 6)
-    BtnCorner.Parent = Btn
-    
-    return Item, Status, Btn
+-- ============================================================
+-- [[ УТИЛИТЫ ]]
+-- ============================================================
+local function Tween(obj, props, duration, style, dir)
+    duration = duration or 0.3
+    style = style or Enum.EasingStyle.Quad
+    dir = dir or Enum.EasingDirection.Out
+    return TweenService:Create(obj, TweenInfo.new(duration, style, dir), props)
 end
 
--- Создание вкладок
-local CurrentCategory = "All"
-local TabButtons = {}
+local function PlayTween(obj, props, duration)
+    Tween(obj, props, duration):Play()
+end
 
-function Library:CreateTab(name, cat)
-    local Btn = Instance.new("TextButton")
-    Btn.Name = name
-    Btn.Parent = TabsFrame
-    Btn.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
-    Btn.BorderSizePixel = 0
-    Btn.Size = UDim2.new(1, -16, 0, 32)
-    Btn.Font = Enum.Font.GothamBold
-    Btn.Text = "  " .. name
-    Btn.TextColor3 = Color3.fromRGB(180, 180, 190)
-    Btn.TextSize = 10
-    Btn.TextXAlignment = Enum.TextXAlignment.Left
-    Btn.AutoButtonColor = false
+local function CreateCorner(parent, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius or 6)
+    c.Parent = parent
+    return c
+end
+
+local function CreateStroke(parent, color, thickness)
+    local s = Instance.new("UIStroke")
+    s.Color = color or Color3.fromRGB(45, 45, 55)
+    s.Thickness = thickness or 1
+    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    s.Parent = parent
+    return s
+end
+
+local function CreatePadding(parent, top, bottom, left, right)
+    local p = Instance.new("UIPadding")
+    p.PaddingTop = UDim.new(0, top or 0)
+    p.PaddingBottom = UDim.new(0, bottom or 0)
+    p.PaddingLeft = UDim.new(0, left or 0)
+    p.PaddingRight = UDim.new(0, right or 0)
+    p.Parent = parent
+    return p
+end
+
+local function GetTimeGreeting()
+    local h = os.date("*t").hour
+    if h >= 5 and h < 12 then return "GOOD MORNING"
+    elseif h >= 12 and h < 18 then return "GOOD AFTERNOON"
+    elseif h >= 18 and h < 22 then return "GOOD EVENING"
+    else return "GOOD NIGHT" end
+end
+
+-- ============================================================
+-- [[ БИБЛИОТЕКА ]]
+-- ============================================================
+local Nebula = {}
+Nebula.__index = Nebula
+
+function Nebula:CreateWindow(config)
+    config = config or {}
+    local title = config.Title or "NEBULA // SYSTEM"
+    local themeName = config.Theme or "Dark"
+    local sizeX = (config.Size and config.Size[1]) or 550
+    local sizeY = (config.Size and config.Size[2]) or 380
+    local minX = (config.MinSize and config.MinSize[1]) or 400
+    local minY = (config.MinSize and config.MinSize[2]) or 280
+    local toggleKey = config.ToggleKey or Enum.KeyCode.RightShift
+
+    local currentTheme = Themes[themeName] or Themes.Dark
+    local Window = {}
+    Window.Tabs = {}
+    Window.TabButtons = {}
+    Window.ThemeObjects = {}
+    Window.CurrentThemeName = themeName
+    Window.Visible = true
+
+    -- ScreenGui
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "NebulaUI_" .. tostring(math.random(100000, 999999))
+    ScreenGui.Parent = CoreGui
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.ResetOnSpawn = false
+    Window.ScreenGui = ScreenGui
+
+    -- GlowFrame (внешняя тень)
+    local GlowFrame = Instance.new("Frame")
+    GlowFrame.Name = "GlowFrame"
+    GlowFrame.Parent = ScreenGui
+    GlowFrame.BackgroundColor3 = currentTheme.Glow
+    GlowFrame.BackgroundTransparency = 0.7
+    GlowFrame.Position = UDim2.new(0.5, -math.floor(sizeX/2), 0.5, -math.floor(sizeY/2))
+    GlowFrame.Size = UDim2.new(0, sizeX, 0, sizeY)
+    CreateCorner(GlowFrame, 10)
+    Window.GlowFrame = GlowFrame
+
+    -- MainFrame
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Parent = GlowFrame
+    MainFrame.BackgroundColor3 = currentTheme.Main
+    MainFrame.Position = UDim2.new(0, 2, 0, 2)
+    MainFrame.Size = UDim2.new(1, -4, 1, -4)
+    MainFrame.ClipsDescendants = true
+    CreateCorner(MainFrame, 8)
+    local mainStroke = CreateStroke(MainFrame, currentTheme.Stroke, 1.5)
+    Window.MainFrame = MainFrame
+    Window.MainStroke = mainStroke
+
+    -- ========== SIDEBAR ==========
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Name = "Sidebar"
+    Sidebar.Parent = MainFrame
+    Sidebar.BackgroundColor3 = currentTheme.Sidebar
+    Sidebar.Size = UDim2.new(0, 50, 1, 0)
+    local sidebarStroke = CreateStroke(Sidebar, currentTheme.Stroke, 1)
+    Window.Sidebar = Sidebar
+    Window.SidebarStroke = sidebarStroke
+
+    -- Индикатор активного таба
+    local TabIndicator = Instance.new("Frame")
+    TabIndicator.Name = "TabIndicator"
+    TabIndicator.Parent = Sidebar
+    TabIndicator.BackgroundColor3 = currentTheme.Accent
+    TabIndicator.Position = UDim2.new(0, 0, 0, 60)
+    TabIndicator.Size = UDim2.new(0, 2, 0, 32)
+    Window.TabIndicator = TabIndicator
+
+    -- ========== ЗАГОЛОВОК ==========
+    local Logo = Instance.new("TextLabel")
+    Logo.Name = "Logo"
+    Logo.Parent = MainFrame
+    Logo.Text = title
+    Logo.Font = Enum.Font.Code
+    Logo.TextSize = 16
+    Logo.TextColor3 = currentTheme.Accent
+    Logo.Position = UDim2.new(0, 65, 0, 0)
+    Logo.Size = UDim2.new(0, 300, 0, 50)
+    Logo.BackgroundTransparency = 1
+    Logo.TextXAlignment = Enum.TextXAlignment.Left
+    Window.Logo = Logo
+
+    -- Кнопка закрытия
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Name = "CloseBtn"
+    CloseBtn.Parent = MainFrame
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(1, -40, 0, 10)
+    CloseBtn.BackgroundTransparency = 1
+    CloseBtn.Text = "×"
+    CloseBtn.Font = Enum.Font.Code
+    CloseBtn.TextSize = 22
+    CloseBtn.TextColor3 = currentTheme.DimText
     
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 7)
-    Corner.Parent = Btn
-    
-    local Indicator = Instance.new("Frame")
-    Indicator.Name = "Indicator"
-    Indicator.Parent = Btn
-    Indicator.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
-    Indicator.BorderSizePixel = 0
-    Indicator.Size = UDim2.new(0, 0, 1, 0)
-    
-    local IndCorner = Instance.new("UICorner")
-    IndCorner.CornerRadius = UDim.new(0, 7)
-    IndCorner.Parent = Indicator
-    
-    table.insert(TabButtons, {btn = Btn, cat = cat, ind = Indicator})
-    
-    Btn.MouseButton1Click:Connect(function()
-        Library:SwitchCategory(cat)
+    CloseBtn.MouseEnter:Connect(function()
+        PlayTween(CloseBtn, {TextColor3 = Color3.fromRGB(255, 80, 80)}, 0.2)
     end)
-    
-    return Btn
-end
+    CloseBtn.MouseLeave:Connect(function()
+        PlayTween(CloseBtn, {TextColor3 = currentTheme.DimText}, 0.2)
+    end)
+    CloseBtn.MouseButton1Click:Connect(function()
+        Window:Toggle()
+    end)
 
-function Library:SwitchCategory(cat)
-    CurrentCategory = cat
+    -- Кнопка минимизации
+    local MinBtn = Instance.new("TextButton")
+    MinBtn.Name = "MinBtn"
+    MinBtn.Parent = MainFrame
+    MinBtn.Size = UDim2.new(0, 30, 0, 30)
+    MinBtn.Position = UDim2.new(1, -70, 0, 10)
+    MinBtn.BackgroundTransparency = 1
+    MinBtn.Text = "—"
+    MinBtn.Font = Enum.Font.Code
+    MinBtn.TextSize = 16
+    MinBtn.TextColor3 = currentTheme.DimText
     
-    for _, tab in pairs(TabButtons) do
-        if tab.cat == cat then
-            tab.btn.BackgroundColor3 = Color3.fromRGB(38, 38, 48)
-            tab.btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            tab.ind.Size = UDim2.new(0, 3, 1, 0)
-        else
-            tab.btn.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
-            tab.btn.TextColor3 = Color3.fromRGB(180, 180, 190)
-            tab.ind.Size = UDim2.new(0, 0, 1, 0)
+    MinBtn.MouseEnter:Connect(function()
+        PlayTween(MinBtn, {TextColor3 = currentTheme.Accent}, 0.2)
+    end)
+    MinBtn.MouseLeave:Connect(function()
+        PlayTween(MinBtn, {TextColor3 = currentTheme.DimText}, 0.2)
+    end)
+    MinBtn.MouseButton1Click:Connect(function()
+        Window:Toggle()
+    end)
+
+    -- ========== КОНТЕЙНЕР СТРАНИЦ ==========
+    local PageContainer = Instance.new("Frame")
+    PageContainer.Name = "PageContainer"
+    PageContainer.Parent = MainFrame
+    PageContainer.BackgroundTransparency = 1
+    PageContainer.Position = UDim2.new(0, 60, 0, 50)
+    PageContainer.Size = UDim2.new(1, -72, 1, -60)
+    Window.PageContainer = PageContainer
+
+    -- ========== РЕСАЙЗЕР ==========
+    local ResizeBtn = Instance.new("TextButton")
+    ResizeBtn.Name = "ResizeBtn"
+    ResizeBtn.Parent = MainFrame
+    ResizeBtn.Size = UDim2.new(0, 20, 0, 20)
+    ResizeBtn.Position = UDim2.new(1, -20, 1, -20)
+    ResizeBtn.BackgroundTransparency = 1
+    ResizeBtn.Text = "⋰"
+    ResizeBtn.Font = Enum.Font.Code
+    ResizeBtn.TextColor3 = currentTheme.DimText
+    ResizeBtn.TextSize = 14
+
+    local isResizing = false
+    ResizeBtn.MouseButton1Down:Connect(function() isResizing = true end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then isResizing = false end
+    end)
+    RunService.RenderStepped:Connect(function()
+        if isResizing then
+            local mousePos = UserInputService:GetMouseLocation()
+            local framePos = GlowFrame.AbsolutePosition
+            local newX = math.max(minX, mousePos.X - framePos.X)
+            local newY = math.max(minY, mousePos.Y - framePos.Y - 36)
+            GlowFrame.Size = UDim2.new(0, newX, 0, newY)
         end
-    end
-    
-    for _, item in pairs(CheckItems) do
-        if cat == "All" then
-            item.item.Visible = true
-        else
-            item.item.Visible = item.data.cat == cat
-        end
-    end
-end
+    end)
 
--- Создание вкладок
-Library:CreateTab("📋 All", "All")
-Library:CreateTab("🎣 Hooks", "Hooks")
-Library:CreateTab("🌍 Env", "Environment")
-Library:CreateTab("📊 Meta", "Metatables")
-Library:CreateTab("📜 Scripts", "Scripts")
-Library:CreateTab("🔗 Inst", "Instances")
-Library:CreateTab("🔌 Conn", "Connections")
-Library:CreateTab("📡 Remote", "Remotes")
-Library:CreateTab("🔒 Close", "Closures")
-Library:CreateTab("💾 Cache", "Cache")
-Library:CreateTab("🖥️ Console", "Console")
-Library:CreateTab("📁 Files", "Filesystem")
-Library:CreateTab("📋 Clip", "Clipboard")
-Library:CreateTab("✏️ Draw", "Drawing")
-Library:CreateTab("⌨️ Input", "Input")
-Library:CreateTab("🌐 WS", "WebSocket")
-Library:CreateTab("📨 HTTP", "Request")
-Library:CreateTab("🐛 Debug", "Debug")
-Library:CreateTab("🔐 Crypt", "Crypt")
-Library:CreateTab("🎲 Misc", "Misc")
-Library:CreateTab("🛡️ Sec", "Security")
+    -- ========== DRAG ==========
+    local isDragging = false
+    local dragStart, startPos
 
-TabsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    TabsFrame.CanvasSize = UDim2.new(0, 0, 0, TabsLayout.AbsoluteContentSize.Y + 16)
-end)
-
--- Создание элементов
-CheckItems = {}
-for _, data in ipairs(CheckFunctions) do
-    local item, status, btn = Library:CreateCheckItem(data)
-    
-    btn.MouseButton1Click:Connect(function()
-        btn.Text = "⏳"
-        btn.BackgroundColor3 = Color3.fromRGB(90, 90, 100)
-        
-        task.spawn(function()
-            task.wait(0.05)
-            local ok, result, msg = pcall(data.check)
-            
-            if ok and result ~= nil then
-                if result then
-                    status.Text = "✅ " .. (msg or "OK")
-                    status.TextColor3 = Color3.fromRGB(100, 255, 100)
-                    btn.BackgroundColor3 = Color3.fromRGB(70, 180, 70)
-                    btn.Text = "✓"
-                elseif result == false then
-                    status.Text = "❌ " .. (msg or "FAIL")
-                    status.TextColor3 = Color3.fromRGB(255, 100, 100)
-                    btn.BackgroundColor3 = Color3.fromRGB(220, 70, 70)
-                    btn.Text = "✗"
-                else
-                    status.Text = "⚠️ " .. (msg or "N/A")
-                    status.TextColor3 = Color3.fromRGB(255, 200, 100)
-                    btn.BackgroundColor3 = Color3.fromRGB(220, 160, 70)
-                    btn.Text = "⚠"
-                end
-            else
-                status.Text = "❌ Error"
-                status.TextColor3 = Color3.fromRGB(255, 100, 100)
-                btn.BackgroundColor3 = Color3.fromRGB(220, 70, 70)
-                btn.Text = "✗"
+    MainFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and not isResizing then
+            local mouseY = input.Position.Y
+            local frameY = MainFrame.AbsolutePosition.Y
+            if mouseY - frameY <= 50 then
+                isDragging = true
+                dragStart = input.Position
+                startPos = GlowFrame.Position
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then isDragging = false end
+                end)
             end
-        end)
-    end)
-    
-    btn.MouseEnter:Connect(function()
-        if btn.Text == "▶ Test" then
-            btn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
         end
     end)
-    
-    btn.MouseLeave:Connect(function()
-        if btn.Text == "▶ Test" then
-            btn.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+    UserInputService.InputChanged:Connect(function(input)
+        if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            GlowFrame.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
         end
     end)
-    
-    table.insert(CheckItems, {
-        button = btn,
-        status = status,
-        check = data.check,
-        item = item,
-        data = data
-    })
-end
 
-UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 20)
-end)
+    -- ========== KEYBIND TOGGLE ==========
+    UserInputService.InputBegan:Connect(function(input, processed)
+        if not processed and input.KeyCode == toggleKey then
+            Window:Toggle()
+        end
+    end)
 
--- Check All
-local checking = false
-CheckAllButton.MouseButton1Click:Connect(function()
-    if checking then return end
-    checking = true
-    
-    CheckAllButton.Text = "⏳ Checking..."
-    local total = 0
-    local checked = 0
-    
-    for _, item in pairs(CheckItems) do
-        if item.item.Visible then total = total + 1 end
-    end
-    
-    for i, item in pairs(CheckItems) do
-        if item.item.Visible then
-            task.spawn(function()
-                task.wait(i * 0.01)
-                item.button.MouseButton1Click:Fire()
-                checked = checked + 1
-                StatusText.Text = "Checking... " .. checked .. "/" .. total
+    -- ========== WELCOME CARD (встроенная Home-вкладка) ==========
+    local tabYOffset = 60
+
+    -- ========== МЕТОДЫ WINDOW ==========
+
+    function Window:Toggle()
+        Window.Visible = not Window.Visible
+        if Window.Visible then
+            ScreenGui.Enabled = true
+            GlowFrame.Visible = true
+            MainFrame.BackgroundTransparency = 1
+            PlayTween(MainFrame, {BackgroundTransparency = 0}, 0.3)
+            PlayTween(GlowFrame, {BackgroundTransparency = 0.7}, 0.3)
+        else
+            PlayTween(MainFrame, {BackgroundTransparency = 1}, 0.3)
+            PlayTween(GlowFrame, {BackgroundTransparency = 1}, 0.3)
+            task.delay(0.3, function()
+                GlowFrame.Visible = false
             end)
         end
     end
-    
-    task.wait(total * 0.01 + 0.5)
-    CheckAllButton.Text = "🔍 Check All"
-    StatusText.Text = "Ready | " .. checked .. "/" .. total .. " checked"
-    checking = false
-end)
 
--- Clear
-ClearButton.MouseButton1Click:Connect(function()
-    for _, item in pairs(CheckItems) do
-        item.status.Text = "⏳ Ожидание..."
-        item.status.TextColor3 = Color3.fromRGB(170, 170, 180)
-        item.button.Text = "▶ Test"
-        item.button.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+    function Window:Destroy()
+        ScreenGui:Destroy()
     end
-    StatusText.Text = "Ready | 0/" .. #CheckFunctions .. " checked"
-end)
 
--- Export
-ExportButton.MouseButton1Click:Connect(function()
-    local txt = "=== CHEAT DETECTOR v3.0 ===\n"
-    txt = txt .. "Functions: " .. #CheckFunctions .. "\n"
-    txt = txt .. "Time: " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n\n"
-    
-    for _, item in pairs(CheckItems) do
-        txt = txt .. item.data.name .. ": " .. item.status.Text .. "\n"
-    end
-    
-    if setclipboard then
-        setclipboard(txt)
-        ExportButton.Text = "✅ Copied!"
-    else
-        print(txt)
-        ExportButton.Text = "✅ Console!"
-    end
-    
-    task.wait(1.5)
-    ExportButton.Text = "📋 Export"
-end)
+    function Window:SetTheme(name)
+        if not Themes[name] then return end
+        currentTheme = Themes[name]
+        Window.CurrentThemeName = name
+        local info = 0.5
 
--- Search
-local searchDebounce = false
-SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-    if searchDebounce then return end
-    searchDebounce = true
-    
-    task.wait(0.2)
-    
-    local txt = SearchBox.Text:lower()
-    
-    for _, item in pairs(CheckItems) do
-        if txt == "" then
-            if CurrentCategory == "All" then
-                item.item.Visible = true
-            else
-                item.item.Visible = item.data.cat == CurrentCategory
+        PlayTween(MainFrame, {BackgroundColor3 = currentTheme.Main}, info)
+        PlayTween(Sidebar, {BackgroundColor3 = currentTheme.Sidebar}, info)
+        PlayTween(mainStroke, {Color = currentTheme.Stroke}, info)
+        PlayTween(sidebarStroke, {Color = currentTheme.Stroke}, info)
+        PlayTween(TabIndicator, {BackgroundColor3 = currentTheme.Accent}, info)
+        PlayTween(Logo, {TextColor3 = currentTheme.Accent}, info)
+        PlayTween(GlowFrame, {BackgroundColor3 = currentTheme.Glow}, info)
+
+        -- Обновляем все зарегистрированные объекты
+        for _, obj in pairs(Window.ThemeObjects) do
+            if obj.Instance and obj.Instance.Parent then
+                local props = {}
+                for prop, themeKey in pairs(obj.Props) do
+                    if currentTheme[themeKey] then
+                        props[prop] = currentTheme[themeKey]
+                    end
+                end
+                if next(props) then
+                    PlayTween(obj.Instance, props, info)
+                end
+                -- Прямые свойства (UIStroke и т.д.)
+                if obj.Direct then
+                    for prop, themeKey in pairs(obj.Direct) do
+                        if currentTheme[themeKey] then
+                            obj.Instance[prop] = currentTheme[themeKey]
+                        end
+                    end
+                end
             end
-        else
-            local match = item.data.name:lower():find(txt) or item.data.desc:lower():find(txt)
-            local catMatch = CurrentCategory == "All" or item.data.cat == CurrentCategory
-            item.item.Visible = match and catMatch
         end
     end
-    
-    searchDebounce = false
-end)
 
--- Close
-CloseButton.MouseButton1Click:Connect(function()
-    TweenService:Create(MainFrame, TweenInfo.new(0.2), {
-        Size = UDim2.new(0, 0, 0, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 0)
-    }):Play()
-    task.wait(0.2)
-    ScreenGui:Destroy()
-end)
-
--- Minimize
-local minimized = false
-MinimizeButton.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    TweenService:Create(MainFrame, TweenInfo.new(0.2), {
-        Size = minimized and UDim2.new(0, 800, 0, 50) or UDim2.new(0, 800, 0, 600)
-    }):Play()
-    MinimizeButton.Text = minimized and "+" or "−"
-end)
-
--- Dragging
-local dragging = false
-local dragStart
-local startPos
-
-TopBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
+    function Window:RegisterThemeObject(instance, tweenProps, directProps)
+        table.insert(Window.ThemeObjects, {
+            Instance = instance,
+            Props = tweenProps or {},
+            Direct = directProps or {}
+        })
     end
-end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
+    -- ========== CREATE TAB ==========
+    function Window:CreateTab(tabConfig)
+        tabConfig = tabConfig or {}
+        local tabName = tabConfig.Name or "Tab"
+        local tabIcon = tabConfig.Icon or "•"
+
+        local Tab = {}
+        Tab.Name = tabName
+        Tab.Elements = {}
+
+        -- Страница (ScrollingFrame)
+        local Page = Instance.new("ScrollingFrame")
+        Page.Name = tabName
+        Page.Parent = PageContainer
+        Page.BackgroundTransparency = 1
+        Page.Size = UDim2.new(1, 0, 1, 0)
+        Page.ScrollBarThickness = 2
+        Page.ScrollBarImageColor3 = currentTheme.Accent
+        Page.BorderSizePixel = 0
+        Page.Visible = false
+        Page.CanvasSize = UDim2.new(0, 0, 0, 0)
+        Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+        local pageLayout = Instance.new("UIListLayout")
+        pageLayout.Parent = Page
+        pageLayout.Padding = UDim.new(0, 8)
+        pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+        CreatePadding(Page, 5, 5, 10, 10)
+
+        Tab.Page = Page
+
+        -- Кнопка в сайдбаре
+        local yPos = tabYOffset
+        tabYOffset = tabYOffset + 40
+
+        local sideBtn = Instance.new("TextButton")
+        sideBtn.Parent = Sidebar
+        sideBtn.Size = UDim2.new(0, 32, 0, 32)
+        sideBtn.Position = UDim2.new(0.5, -16, 0, yPos)
+        sideBtn.BackgroundColor3 = currentTheme.Main
+        sideBtn.BackgroundTransparency = 0.96
+        sideBtn.Text = tabIcon
+        sideBtn.Font = Enum.Font.Code
+        sideBtn.TextColor3 = currentTheme.DimText
+        sideBtn.TextSize = 14
+        CreateCorner(sideBtn, 6)
+
+        sideBtn.MouseEnter:Connect(function()
+            PlayTween(sideBtn, {BackgroundTransparency = 0.85}, 0.2)
+        end)
+        sideBtn.MouseLeave:Connect(function()
+            PlayTween(sideBtn, {BackgroundTransparency = 0.96}, 0.2)
+        end)
+
+        sideBtn.MouseButton1Click:Connect(function()
+            PlayTween(TabIndicator, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Position = UDim2.new(0, 0, 0, yPos)}):Play()
+            for _, t in pairs(Window.Tabs) do
+                t.Page.Visible = false
+            end
+            Page.Visible = true
+        end)
+
+        -- Первый таб — активный
+        if #Window.Tabs == 0 then
+            Page.Visible = true
+            TabIndicator.Position = UDim2.new(0, 0, 0, yPos)
+        end
+
+        table.insert(Window.Tabs, Tab)
+        table.insert(Window.TabButtons, sideBtn)
+
+        Window:RegisterThemeObject(sideBtn, {BackgroundColor3 = "Main", TextColor3 = "DimText"}, {})
+
+        -- ============================================================
+        -- [[ ЭЛЕМЕНТЫ ВКЛАДКИ ]]
+        -- ============================================================
+
+        -- ---- WELCOME CARD ----
+        function Tab:AddWelcomeCard()
+            local card = Instance.new("Frame")
+            card.Name = "WelcomeCard"
+            card.Parent = Page
+            card.Size = UDim2.new(1, 0, 0, 70)
+            card.BackgroundColor3 = currentTheme.Card
+            CreateCorner(card, 6)
+            local cs = CreateStroke(card, currentTheme.Stroke, 1)
+
+            local avatar = Instance.new("ImageLabel")
+            avatar.Parent = card
+            avatar.Size = UDim2.new(0, 50, 0, 50)
+            avatar.Position = UDim2.new(0, 10, 0, 10)
+            avatar.BackgroundColor3 = currentTheme.Main
+            avatar.Image = IsAvatarReady and AvatarContent or ""
+            CreateCorner(avatar, 25)
+            local avStroke = CreateStroke(avatar, currentTheme.Accent, 2)
+
+            local greeting = Instance.new("TextLabel")
+            greeting.Parent = card
+            greeting.Size = UDim2.new(1, -75, 0, 25)
+            greeting.Position = UDim2.new(0, 70, 0, 12)
+            greeting.BackgroundTransparency = 1
+            greeting.Font = Enum.Font.Code
+            greeting.TextSize = 14
+            greeting.Text = GetTimeGreeting()
+            greeting.TextColor3 = currentTheme.Accent
+            greeting.TextXAlignment = Enum.TextXAlignment.Left
+
+            local playerName = Instance.new("TextLabel")
+            playerName.Parent = card
+            playerName.Size = UDim2.new(1, -75, 0, 20)
+            playerName.Position = UDim2.new(0, 70, 0, 34)
+            playerName.BackgroundTransparency = 1
+            playerName.Font = Enum.Font.GothamBold
+            playerName.TextSize = 13
+            playerName.Text = LocalPlayer.DisplayName
+            playerName.TextColor3 = currentTheme.Text
+            playerName.TextXAlignment = Enum.TextXAlignment.Left
+
+            Window:RegisterThemeObject(card, {BackgroundColor3 = "Card"}, {})
+            Window:RegisterThemeObject(cs, {}, {Color = "Stroke"})
+            Window:RegisterThemeObject(avatar, {BackgroundColor3 = "Main"}, {})
+            Window:RegisterThemeObject(avStroke, {}, {Color = "Accent"})
+            Window:RegisterThemeObject(greeting, {TextColor3 = "Accent"}, {})
+            Window:RegisterThemeObject(playerName, {TextColor3 = "Text"}, {})
+
+            return card
+        end
+
+        -- ---- LABEL ----
+        function Tab:AddLabel(cfg)
+            cfg = cfg or {}
+            local label = Instance.new("TextLabel")
+            label.Name = "Label"
+            label.Parent = Page
+            label.Size = UDim2.new(1, 0, 0, 25)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.Code
+            label.TextSize = 13
+            label.Text = cfg.Text or "Label"
+            label.TextColor3 = currentTheme.DimText
+            label.TextXAlignment = Enum.TextXAlignment.Left
+
+            Window:RegisterThemeObject(label, {TextColor3 = "DimText"}, {})
+
+            local LabelAPI = {}
+            function LabelAPI:SetText(txt)
+                label.Text = txt
+            end
+            return LabelAPI
+        end
+
+        -- ---- BUTTON ----
+        function Tab:AddButton(cfg)
+            cfg = cfg or {}
+            local holder = Instance.new("Frame")
+            holder.Name = "ButtonHolder"
+            holder.Parent = Page
+            holder.Size = UDim2.new(1, 0, 0, 36)
+            holder.BackgroundColor3 = currentTheme.ElementBg
+            CreateCorner(holder, 6)
+            local hs = CreateStroke(holder, currentTheme.Stroke, 1)
+
+            local btn = Instance.new("TextButton")
+            btn.Name = "Button"
+            btn.Parent = holder
+            btn.Size = UDim2.new(1, 0, 1, 0)
+            btn.BackgroundTransparency = 1
+            btn.Font = Enum.Font.Code
+            btn.TextSize = 13
+            btn.Text = cfg.Name or "Button"
+            btn.TextColor3 = currentTheme.Text
+
+            btn.MouseEnter:Connect(function()
+                PlayTween(holder, {BackgroundColor3 = currentTheme.Hover}, 0.2)
+            end)
+            btn.MouseLeave:Connect(function()
+                PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.2)
+            end)
+            btn.MouseButton1Click:Connect(function()
+                -- Ripple effect
+                PlayTween(holder, {BackgroundColor3 = currentTheme.Accent}, 0.1)
+                task.delay(0.15, function()
+                    PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.3)
+                end)
+                if cfg.Callback then
+                    cfg.Callback()
+                end
+            end)
+
+            Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
+            Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
+            Window:RegisterThemeObject(btn, {TextColor3 = "Text"}, {})
+        end
+
+        -- ---- TOGGLE ----
+        function Tab:AddToggle(cfg)
+            cfg = cfg or {}
+            local state = cfg.Default or false
+
+            local holder = Instance.new("Frame")
+            holder.Name = "ToggleHolder"
+            holder.Parent = Page
+            holder.Size = UDim2.new(1, 0, 0, 36)
+            holder.BackgroundColor3 = currentTheme.ElementBg
+            CreateCorner(holder, 6)
+            local hs = CreateStroke(holder, currentTheme.Stroke, 1)
+
+            local label = Instance.new("TextLabel")
+            label.Parent = holder
+            label.Size = UDim2.new(1, -60, 1, 0)
+            label.Position = UDim2.new(0, 12, 0, 0)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.Code
+            label.TextSize = 13
+            label.Text = cfg.Name or "Toggle"
+            label.TextColor3 = currentTheme.Text
+            label.TextXAlignment = Enum.TextXAlignment.Left
+
+            local toggleFrame = Instance.new("Frame")
+            toggleFrame.Parent = holder
+            toggleFrame.Size = UDim2.new(0, 38, 0, 20)
+            toggleFrame.Position = UDim2.new(1, -50, 0.5, -10)
+            toggleFrame.BackgroundColor3 = state and currentTheme.ToggleOn or currentTheme.ToggleOff
+            CreateCorner(toggleFrame, 10)
+
+            local toggleCircle = Instance.new("Frame")
+            toggleCircle.Parent = toggleFrame
+            toggleCircle.Size = UDim2.new(0, 16, 0, 16)
+            toggleCircle.Position = state and UDim2.new(1, -18, 0, 2) or UDim2.new(0, 2, 0, 2)
+            toggleCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            CreateCorner(toggleCircle, 8)
+
+            local toggleBtn = Instance.new("TextButton")
+            toggleBtn.Parent = holder
+            toggleBtn.Size = UDim2.new(1, 0, 1, 0)
+            toggleBtn.BackgroundTransparency = 1
+            toggleBtn.Text = ""
+
+            local function UpdateToggle()
+                PlayTween(toggleFrame, {BackgroundColor3 = state and currentTheme.ToggleOn or currentTheme.ToggleOff}, 0.25)
+                PlayTween(toggleCircle, {Position = state and UDim2.new(1, -18, 0, 2) or UDim2.new(0, 2, 0, 2)}, 0.25)
+            end
+
+            toggleBtn.MouseButton1Click:Connect(function()
+                state = not state
+                UpdateToggle()
+                if cfg.Callback then cfg.Callback(state) end
+            end)
+
+            toggleBtn.MouseEnter:Connect(function()
+                PlayTween(holder, {BackgroundColor3 = currentTheme.Hover}, 0.2)
+            end)
+            toggleBtn.MouseLeave:Connect(function()
+                PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.2)
+            end)
+
+            Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
+            Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
+            Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
+
+            local ToggleAPI = {}
+            function ToggleAPI:Set(val)
+                state = val
+                UpdateToggle()
+                if cfg.Callback then cfg.Callback(state) end
+            end
+            function ToggleAPI:Get()
+                return state
+            end
+            return ToggleAPI
+        end
+
+        -- ---- SLIDER ----
+        function Tab:AddSlider(cfg)
+            cfg = cfg or {}
+            local min = cfg.Min or 0
+            local max = cfg.Max or 100
+            local value = math.clamp(cfg.Default or min, min, max)
+            local suffix = cfg.Suffix or ""
+            local increment = cfg.Increment or 1
+
+            local holder = Instance.new("Frame")
+            holder.Name = "SliderHolder"
+            holder.Parent = Page
+            holder.Size = UDim2.new(1, 0, 0, 50)
+            holder.BackgroundColor3 = currentTheme.ElementBg
+            CreateCorner(holder, 6)
+            local hs = CreateStroke(holder, currentTheme.Stroke, 1)
+
+            local label = Instance.new("TextLabel")
+            label.Parent = holder
+            label.Size = UDim2.new(1, -70, 0, 22)
+            label.Position = UDim2.new(0, 12, 0, 2)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.Code
+            label.TextSize = 12
+            label.Text = cfg.Name or "Slider"
+            label.TextColor3 = currentTheme.Text
+            label.TextXAlignment = Enum.TextXAlignment.Left
+
+            local valLabel = Instance.new("TextLabel")
+            valLabel.Parent = holder
+            valLabel.Size = UDim2.new(0, 60, 0, 22)
+            valLabel.Position = UDim2.new(1, -70, 0, 2)
+            valLabel.BackgroundTransparency = 1
+            valLabel.Font = Enum.Font.Code
+            valLabel.TextSize = 12
+            valLabel.TextColor3 = currentTheme.Accent
+            valLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+            local sliderBg = Instance.new("Frame")
+            sliderBg.Parent = holder
+            sliderBg.Size = UDim2.new(1, -24, 0, 6)
+            sliderBg.Position = UDim2.new(0, 12, 0, 32)
+            sliderBg.BackgroundColor3 = currentTheme.ToggleOff
+            CreateCorner(sliderBg, 3)
+
+            local sliderFill = Instance.new("Frame")
+            sliderFill.Parent = sliderBg
+            sliderFill.Size = UDim2.new((value - min)/(max - min), 0, 1, 0)
+            sliderFill.BackgroundColor3 = currentTheme.SliderFill
+            CreateCorner(sliderFill, 3)
+
+            local sliderKnob = Instance.new("Frame")
+            sliderKnob.Parent = sliderFill
+            sliderKnob.Size = UDim2.new(0, 12, 0, 12)
+            sliderKnob.Position = UDim2.new(1, -6, 0.5, -6)
+            sliderKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            CreateCorner(sliderKnob, 6)
+            sliderKnob.ZIndex = 5
+
+            local function UpdateSlider(newVal)
+                value = math.clamp(newVal, min, max)
+                -- Round to increment
+                value = math.floor(value / increment + 0.5) * increment
+                value = math.clamp(value, min, max)
+                local pct = (value - min) / (max - min)
+                PlayTween(sliderFill, {Size = UDim2.new(pct, 0, 1, 0)}, 0.08)
+                valLabel.Text = tostring(value) .. suffix
+            end
+            UpdateSlider(value)
+
+            local sliding = false
+            local sliderButton = Instance.new("TextButton")
+            sliderButton.Parent = sliderBg
+            sliderButton.Size = UDim2.new(1, 0, 1, 12)
+            sliderButton.Position = UDim2.new(0, 0, 0, -6)
+            sliderButton.BackgroundTransparency = 1
+            sliderButton.Text = ""
+            sliderButton.ZIndex = 6
+
+            sliderButton.MouseButton1Down:Connect(function()
+                sliding = true
+            end)
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    sliding = false
+                end
+            end)
+
+            RunService.RenderStepped:Connect(function()
+                if sliding then
+                    local mx = UserInputService:GetMouseLocation().X
+                    local absX = sliderBg.AbsolutePosition.X
+                    local absW = sliderBg.AbsoluteSize.X
+                    local pct = math.clamp((mx - absX) / absW, 0, 1)
+                    local newVal = min + (max - min) * pct
+                    UpdateSlider(newVal)
+                    if cfg.Callback then cfg.Callback(value) end
+                end
+            end)
+
+            Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
+            Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
+            Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
+            Window:RegisterThemeObject(valLabel, {TextColor3 = "Accent"}, {})
+            Window:RegisterThemeObject(sliderBg, {BackgroundColor3 = "ToggleOff"}, {})
+            Window:RegisterThemeObject(sliderFill, {BackgroundColor3 = "SliderFill"}, {})
+
+            local SliderAPI = {}
+            function SliderAPI:Set(val)
+                UpdateSlider(val)
+                if cfg.Callback then cfg.Callback(value) end
+            end
+            function SliderAPI:Get()
+                return value
+            end
+            return SliderAPI
+        end
+
+        -- ---- DROPDOWN ----
+        function Tab:AddDropdown(cfg)
+            cfg = cfg or {}
+            local options = cfg.Options or {}
+            local selected = cfg.Default or (options[1] or "")
+            local isOpen = false
+
+            local holder = Instance.new("Frame")
+            holder.Name = "DropdownHolder"
+            holder.Parent = Page
+            holder.Size = UDim2.new(1, 0, 0, 36)
+            holder.BackgroundColor3 = currentTheme.ElementBg
+            holder.ClipsDescendants = true
+            CreateCorner(holder, 6)
+            local hs = CreateStroke(holder, currentTheme.Stroke, 1)
+
+            local header = Instance.new("TextButton")
+            header.Parent = holder
+            header.Size = UDim2.new(1, 0, 0, 36)
+            header.BackgroundTransparency = 1
+            header.Font = Enum.Font.Code
+            header.TextSize = 13
+            header.TextColor3 = currentTheme.Text
+            header.Text = (cfg.Name or "Dropdown") .. ": " .. tostring(selected)
+            header.TextXAlignment = Enum.TextXAlignment.Left
+            CreatePadding(header, 0, 0, 12, 12)
+
+            local arrow = Instance.new("TextLabel")
+            arrow.Parent = holder
+            arrow.Size = UDim2.new(0, 20, 0, 36)
+            arrow.Position = UDim2.new(1, -30, 0, 0)
+            arrow.BackgroundTransparency = 1
+            arrow.Font = Enum.Font.Code
+            arrow.TextSize = 12
+            arrow.Text = "▼"
+            arrow.TextColor3 = currentTheme.DimText
+
+            local optionsContainer = Instance.new("Frame")
+            optionsContainer.Parent = holder
+            optionsContainer.Size = UDim2.new(1, -8, 0, #options * 28)
+            optionsContainer.Position = UDim2.new(0, 4, 0, 38)
+            optionsContainer.BackgroundTransparency = 1
+
+            local optLayout = Instance.new("UIListLayout")
+            optLayout.Parent = optionsContainer
+            optLayout.Padding = UDim.new(0, 2)
+
+            for _, opt in pairs(options) do
+                local optBtn = Instance.new("TextButton")
+                optBtn.Parent = optionsContainer
+                optBtn.Size = UDim2.new(1, 0, 0, 26)
+                optBtn.BackgroundColor3 = currentTheme.Card
+                optBtn.Font = Enum.Font.Code
+                optBtn.TextSize = 12
+                optBtn.TextColor3 = currentTheme.Text
+                optBtn.Text = opt
+                CreateCorner(optBtn, 4)
+
+                optBtn.MouseEnter:Connect(function()
+                    PlayTween(optBtn, {BackgroundColor3 = currentTheme.Hover}, 0.15)
+                end)
+                optBtn.MouseLeave:Connect(function()
+                    PlayTween(optBtn, {BackgroundColor3 = currentTheme.Card}, 0.15)
+                end)
+
+                optBtn.MouseButton1Click:Connect(function()
+                    selected = opt
+                    header.Text = (cfg.Name or "Dropdown") .. ": " .. opt
+                    isOpen = false
+                    PlayTween(holder, {Size = UDim2.new(1, 0, 0, 36)}, 0.25)
+                    PlayTween(arrow, {Rotation = 0}, 0.25)
+                    if cfg.Callback then cfg.Callback(opt) end
+                end)
+
+                Window:RegisterThemeObject(optBtn, {BackgroundColor3 = "Card", TextColor3 = "Text"}, {})
+            end
+
+            header.MouseButton1Click:Connect(function()
+                isOpen = not isOpen
+                local targetH = isOpen and (38 + #options * 28 + 8) or 36
+                PlayTween(holder, {Size = UDim2.new(1, 0, 0, targetH)}, 0.25)
+                PlayTween(arrow, {Rotation = isOpen and 180 or 0}, 0.25)
+            end)
+
+            Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
+            Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
+            Window:RegisterThemeObject(header, {TextColor3 = "Text"}, {})
+            Window:RegisterThemeObject(arrow, {TextColor3 = "DimText"}, {})
+
+            local DropAPI = {}
+            function DropAPI:Set(val)
+                selected = val
+                header.Text = (cfg.Name or "Dropdown") .. ": " .. val
+                if cfg.Callback then cfg.Callback(val) end
+            end
+            function DropAPI:Get()
+                return selected
+            end
+            function DropAPI:Refresh(newOptions, newDefault)
+                -- Очистка
+                for _, c in pairs(optionsContainer:GetChildren()) do
+                    if c:IsA("TextButton") then c:Destroy() end
+                end
+                options = newOptions or {}
+                selected = newDefault or options[1] or ""
+                header.Text = (cfg.Name or "Dropdown") .. ": " .. selected
+                optionsContainer.Size = UDim2.new(1, -8, 0, #options * 28)
+
+                for _, opt in pairs(options) do
+                    local optBtn = Instance.new("TextButton")
+                    optBtn.Parent = optionsContainer
+                    optBtn.Size = UDim2.new(1, 0, 0, 26)
+                    optBtn.BackgroundColor3 = currentTheme.Card
+                    optBtn.Font = Enum.Font.Code
+                    optBtn.TextSize = 12
+                    optBtn.TextColor3 = currentTheme.Text
+                    optBtn.Text = opt
+                    CreateCorner(optBtn, 4)
+
+                    optBtn.MouseButton1Click:Connect(function()
+                        selected = opt
+                        header.Text = (cfg.Name or "Dropdown") .. ": " .. opt
+                        isOpen = false
+                        PlayTween(holder, {Size = UDim2.new(1, 0, 0, 36)}, 0.25)
+                        if cfg.Callback then cfg.Callback(opt) end
+                    end)
+                end
+
+                if isOpen then
+                    isOpen = false
+                    holder.Size = UDim2.new(1, 0, 0, 36)
+                end
+            end
+            return DropAPI
+        end
+
+        -- ---- TEXTBOX ----
+        function Tab:AddTextbox(cfg)
+            cfg = cfg or {}
+
+            local holder = Instance.new("Frame")
+            holder.Name = "TextboxHolder"
+            holder.Parent = Page
+            holder.Size = UDim2.new(1, 0, 0, 36)
+            holder.BackgroundColor3 = currentTheme.ElementBg
+            CreateCorner(holder, 6)
+            local hs = CreateStroke(holder, currentTheme.Stroke, 1)
+
+            local label = Instance.new("TextLabel")
+            label.Parent = holder
+            label.Size = UDim2.new(0.4, 0, 1, 0)
+            label.Position = UDim2.new(0, 12, 0, 0)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.Code
+            label.TextSize = 12
+            label.Text = cfg.Name or "Input"
+            label.TextColor3 = currentTheme.Text
+            label.TextXAlignment = Enum.TextXAlignment.Left
+
+            local inputBox = Instance.new("TextBox")
+            inputBox.Parent = holder
+            inputBox.Size = UDim2.new(0.55, -12, 0, 26)
+            inputBox.Position = UDim2.new(0.45, 0, 0, 5)
+            inputBox.BackgroundColor3 = currentTheme.Card
+            inputBox.Font = Enum.Font.Code
+            inputBox.TextSize = 12
+            inputBox.TextColor3 = currentTheme.Text
+            inputBox.PlaceholderText = cfg.Placeholder or "..."
+            inputBox.PlaceholderColor3 = currentTheme.DimText
+            inputBox.Text = cfg.Default or ""
+            inputBox.ClearTextOnFocus = cfg.ClearOnFocus or false
+            CreateCorner(inputBox, 4)
+            CreateStroke(inputBox, currentTheme.Stroke, 1)
+
+            inputBox.FocusLost:Connect(function(enterPressed)
+                if cfg.Callback then cfg.Callback(inputBox.Text, enterPressed) end
+            end)
+
+            Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
+            Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
+            Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
+            Window:RegisterThemeObject(inputBox, {BackgroundColor3 = "Card", TextColor3 = "Text", PlaceholderColor3 = "DimText"}, {})
+
+            local TbAPI = {}
+            function TbAPI:SetText(txt)
+                inputBox.Text = txt
+            end
+            function TbAPI:GetText()
+                return inputBox.Text
+            end
+            return TbAPI
+        end
+
+        -- ---- KEYBIND ----
+        function Tab:AddKeybind(cfg)
+            cfg = cfg or {}
+            local currentKey = cfg.Default or Enum.KeyCode.E
+            local listening = false
+
+            local holder = Instance.new("Frame")
+            holder.Name = "KeybindHolder"
+            holder.Parent = Page
+            holder.Size = UDim2.new(1, 0, 0, 36)
+            holder.BackgroundColor3 = currentTheme.ElementBg
+            CreateCorner(holder, 6)
+            local hs = CreateStroke(holder, currentTheme.Stroke, 1)
+
+            local label = Instance.new("TextLabel")
+            label.Parent = holder
+            label.Size = UDim2.new(1, -80, 1, 0)
+            label.Position = UDim2.new(0, 12, 0, 0)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.Code
+            label.TextSize = 12
+            label.Text = cfg.Name or "Keybind"
+            label.TextColor3 = currentTheme.Text
+            label.TextXAlignment = Enum.TextXAlignment.Left
+
+            local keyBtn = Instance.new("TextButton")
+            keyBtn.Parent = holder
+            keyBtn.Size = UDim2.new(0, 60, 0, 24)
+            keyBtn.Position = UDim2.new(1, -72, 0, 6)
+            keyBtn.BackgroundColor3 = currentTheme.Card
+            keyBtn.Font = Enum.Font.Code
+            keyBtn.TextSize = 11
+            keyBtn.TextColor3 = currentTheme.Accent
+            keyBtn.Text = "[" .. currentKey.Name .. "]"
+            CreateCorner(keyBtn, 4)
+            CreateStroke(keyBtn, currentTheme.Stroke, 1)
+
+            keyBtn.MouseButton1Click:Connect(function()
+                listening = true
+                keyBtn.Text = "[...]"
+                PlayTween(keyBtn, {TextColor3 = Color3.fromRGB(255, 255, 100)}, 0.2)
+            end)
+
+            UserInputService.InputBegan:Connect(function(input, processed)
+                if listening and input.UserInputType == Enum.UserInputType.Keyboard then
+                    listening = false
+                    currentKey = input.KeyCode
+                    keyBtn.Text = "[" .. currentKey.Name .. "]"
+                    PlayTween(keyBtn, {TextColor3 = currentTheme.Accent}, 0.2)
+                    if cfg.Callback then cfg.Callback(currentKey) end
+                elseif not processed and input.KeyCode == currentKey then
+                    if cfg.OnPress then cfg.OnPress() end
+                end
+            end)
+
+            Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
+            Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
+            Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
+            Window:RegisterThemeObject(keyBtn, {BackgroundColor3 = "Card", TextColor3 = "Accent"}, {})
+
+            local KbAPI = {}
+            function KbAPI:SetKey(key)
+                currentKey = key
+                keyBtn.Text = "[" .. key.Name .. "]"
+            end
+            function KbAPI:GetKey()
+                return currentKey
+            end
+            return KbAPI
+        end
+
+        -- ---- COLOR PICKER ----
+        function Tab:AddColorPicker(cfg)
+            cfg = cfg or {}
+            local currentColor = cfg.Default or Color3.fromRGB(255, 0, 0)
+            local isOpen = false
+
+            local holder = Instance.new("Frame")
+            holder.Name = "ColorPickerHolder"
+            holder.Parent = Page
+            holder.Size = UDim2.new(1, 0, 0, 36)
+            holder.BackgroundColor3 = currentTheme.ElementBg
+            holder.ClipsDescendants = true
+            CreateCorner(holder, 6)
+            local hs = CreateStroke(holder, currentTheme.Stroke, 1)
+
+            local label = Instance.new("TextLabel")
+            label.Parent = holder
+            label.Size = UDim2.new(1, -60, 0, 36)
+            label.Position = UDim2.new(0, 12, 0, 0)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.Code
+            label.TextSize = 12
+            label.Text = cfg.Name or "Color"
+            label.TextColor3 = currentTheme.Text
+            label.TextXAlignment = Enum.TextXAlignment.Left
+
+            local preview = Instance.new("TextButton")
+            preview.Parent = holder
+            preview.Size = UDim2.new(0, 28, 0, 22)
+            preview.Position = UDim2.new(1, -42, 0, 7)
+            preview.BackgroundColor3 = currentColor
+            preview.Text = ""
+            CreateCorner(preview, 4)
+            CreateStroke(preview, currentTheme.Stroke, 1)
+
+            -- Color canvas
+            local canvasHolder = Instance.new("Frame")
+            canvasHolder.Parent = holder
+            canvasHolder.Size = UDim2.new(1, -20, 0, 120)
+            canvasHolder.Position = UDim2.new(0, 10, 0, 40)
+            canvasHolder.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            CreateCorner(canvasHolder, 4)
+
+            -- SV gradient
+            local whiteGrad = Instance.new("UIGradient")
+            whiteGrad.Color = ColorSequence.new(Color3.new(1,1,1), Color3.new(1,1,1))
+            whiteGrad.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0),
+                NumberSequenceKeypoint.new(1, 1)
+            })
+            whiteGrad.Parent = canvasHolder
+
+            local blackOverlay = Instance.new("Frame")
+            blackOverlay.Parent = canvasHolder
+            blackOverlay.Size = UDim2.new(1, 0, 1, 0)
+            blackOverlay.BackgroundColor3 = Color3.new(0, 0, 0)
+            blackOverlay.BackgroundTransparency = 0
+            CreateCorner(blackOverlay, 4)
+
+            local blackGrad = Instance.new("UIGradient")
+            blackGrad.Color = ColorSequence.new(Color3.new(0,0,0), Color3.new(0,0,0))
+            blackGrad.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 1),
+                NumberSequenceKeypoint.new(1, 0)
+            })
+            blackGrad.Rotation = 90
+            blackGrad.Parent = blackOverlay
+
+            -- Hue bar
+            local hueBar = Instance.new("Frame")
+            hueBar.Parent = holder
+            hueBar.Size = UDim2.new(1, -20, 0, 14)
+            hueBar.Position = UDim2.new(0, 10, 0, 165)
+            CreateCorner(hueBar, 4)
+
+            local hueGrad = Instance.new("UIGradient")
+            hueGrad.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromHSV(0,1,1)),
+                ColorSequenceKeypoint.new(0.167, Color3.fromHSV(0.167,1,1)),
+                ColorSequenceKeypoint.new(0.333, Color3.fromHSV(0.333,1,1)),
+                ColorSequenceKeypoint.new(0.5, Color3.fromHSV(0.5,1,1)),
+                ColorSequenceKeypoint.new(0.667, Color3.fromHSV(0.667,1,1)),
+                ColorSequenceKeypoint.new(0.833, Color3.fromHSV(0.833,1,1)),
+                ColorSequenceKeypoint.new(1, Color3.fromHSV(1,1,1)),
+            })
+            hueGrad.Parent = hueBar
+
+            local hueSlider = Instance.new("TextButton")
+            hueSlider.Parent = hueBar
+            hueSlider.Size = UDim2.new(1, 0, 1, 0)
+            hueSlider.BackgroundTransparency = 1
+            hueSlider.Text = ""
+            hueSlider.ZIndex = 5
+
+            local svButton = Instance.new("TextButton")
+            svButton.Parent = canvasHolder
+            svButton.Size = UDim2.new(1, 0, 1, 0)
+            svButton.BackgroundTransparency = 1
+            svButton.Text = ""
+            svButton.ZIndex = 5
+
+            local h, s, v = Color3.toHSV(currentColor)
+            local draggingSV = false
+            local draggingH = false
+
+            local function UpdateColor()
+                currentColor = Color3.fromHSV(h, s, v)
+                preview.BackgroundColor3 = currentColor
+                canvasHolder.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+                if cfg.Callback then cfg.Callback(currentColor) end
+            end
+
+            svButton.MouseButton1Down:Connect(function() draggingSV = true end)
+            hueSlider.MouseButton1Down:Connect(function() draggingH = true end)
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    draggingSV = false
+                    draggingH = false
+                end
+            end)
+
+            RunService.RenderStepped:Connect(function()
+                if draggingSV then
+                    local mx = UserInputService:GetMouseLocation()
+                    local ax = canvasHolder.AbsolutePosition.X
+                    local ay = canvasHolder.AbsolutePosition.Y
+                    local aw = canvasHolder.AbsoluteSize.X
+                    local ah = canvasHolder.AbsoluteSize.Y
+                    s = math.clamp((mx.X - ax) / aw, 0, 1)
+                    v = 1 - math.clamp((mx.Y - ay) / ah, 0, 1)
+                    UpdateColor()
+                end
+                if draggingH then
+                    local mx = UserInputService:GetMouseLocation()
+                    local ax = hueBar.AbsolutePosition.X
+                    local aw = hueBar.AbsoluteSize.X
+                    h = math.clamp((mx.X - ax) / aw, 0, 1)
+                    UpdateColor()
+                end
+            end)
+
+            preview.MouseButton1Click:Connect(function()
+                isOpen = not isOpen
+                local targetH = isOpen and 190 or 36
+                PlayTween(holder, {Size = UDim2.new(1, 0, 0, targetH)}, 0.3)
+            end)
+
+            Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
+            Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
+            Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
+
+            local CpAPI = {}
+            function CpAPI:Set(color)
+                h, s, v = Color3.toHSV(color)
+                UpdateColor()
+            end
+            function CpAPI:Get()
+                return currentColor
+            end
+            return CpAPI
+        end
+
+        -- ---- SEPARATOR ----
+        function Tab:AddSeparator()
+            local sep = Instance.new("Frame")
+            sep.Parent = Page
+            sep.Size = UDim2.new(1, 0, 0, 1)
+            sep.BackgroundColor3 = currentTheme.Stroke
+            sep.BorderSizePixel = 0
+
+            Window:RegisterThemeObject(sep, {BackgroundColor3 = "Stroke"}, {})
+        end
+
+        -- ---- SECTION HEADER ----
+        function Tab:AddSection(cfg)
+            cfg = cfg or {}
+            local sec = Instance.new("TextLabel")
+            sec.Parent = Page
+            sec.Size = UDim2.new(1, 0, 0, 28)
+            sec.BackgroundTransparency = 1
+            sec.Font = Enum.Font.Code
+            sec.TextSize = 11
+            sec.Text = "// " .. (cfg.Name or "SECTION"):upper()
+            sec.TextColor3 = currentTheme.Accent
+            sec.TextXAlignment = Enum.TextXAlignment.Left
+
+            Window:RegisterThemeObject(sec, {TextColor3 = "Accent"}, {})
+        end
+
+        return Tab
     end
-end)
 
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
+    -- Notification
+    function Window:Notify(cfg)
+        cfg = cfg or {}
+        local text = cfg.Text or "Notification"
+        local duration = cfg.Duration or 3
+
+        local notif = Instance.new("Frame")
+        notif.Parent = ScreenGui
+        notif.Size = UDim2.new(0, 280, 0, 40)
+        notif.Position = UDim2.new(1, 0, 1, -55)
+        notif.BackgroundColor3 = currentTheme.Card
+        CreateCorner(notif, 6)
+        CreateStroke(notif, currentTheme.Accent, 1)
+
+        local nLabel = Instance.new("TextLabel")
+        nLabel.Parent = notif
+        nLabel.Size = UDim2.new(1, -16, 1, 0)
+        nLabel.Position = UDim2.new(0, 8, 0, 0)
+        nLabel.BackgroundTransparency = 1
+        nLabel.Font = Enum.Font.Code
+        nLabel.TextSize = 12
+        nLabel.Text = text
+        nLabel.TextColor3 = currentTheme.Text
+        nLabel.TextXAlignment = Enum.TextXAlignment.Left
+        nLabel.TextWrapped = true
+
+        -- Slide in
+        PlayTween(notif, {Position = UDim2.new(1, -295, 1, -55)}, 0.4)
+
+        task.delay(duration, function()
+            PlayTween(notif, {Position = UDim2.new(1, 10, 1, -55)}, 0.4)
+            task.delay(0.45, function()
+                notif:Destroy()
+            end)
+        end)
     end
-end)
 
--- Анимация появления
-MainFrame.Size = UDim2.new(0, 0, 0, 0)
-MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-    Size = UDim2.new(0, 800, 0, 600),
-    Position = UDim2.new(0.25, 0, 0.15, 0)
-}):Play()
+    print("NEBULA UI LIBRARY LOADED // v2.0")
+    return Window
+end
 
-Library:SwitchCategory("All")
-
-print("🛡️ ULTIMATE CHEAT DETECTOR v3.0 MEGA COMPLETE")
-print("📊 Total Functions: " .. #CheckFunctions)
-print("✅ Categories: " .. #TabButtons)
-print("⚡ Performance: OPTIMIZED")
+return Nebula
