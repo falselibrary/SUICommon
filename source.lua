@@ -235,6 +235,78 @@ function Nebula:CreateWindow(config)
     ScreenGui.ResetOnSpawn = false
     Window.ScreenGui = ScreenGui
 
+    -- ========== КНОПКА ОТКРЫТИЯ (ИКОНКА) ==========
+local OpenButton = Instance.new("TextButton")
+OpenButton.Name = "OpenButton"
+OpenButton.Parent = ScreenGui
+OpenButton.Size = UDim2.new(0, 45, 0, 45)
+OpenButton.Position = UDim2.new(0, 20, 0, 20)
+OpenButton.BackgroundColor3 = currentTheme.Main
+OpenButton.Text = "N"
+OpenButton.Font = Enum.Font.Code
+OpenButton.TextSize = 20
+OpenButton.TextColor3 = currentTheme.Accent
+OpenButton.AutoButtonColor = false
+OpenButton.Visible = false
+OpenButton.ZIndex = 10
+
+local OpenCorner = Instance.new("UICorner")
+OpenCorner.CornerRadius = UDim.new(1, 0)
+OpenCorner.Parent = OpenButton
+
+local OpenStroke = Instance.new("UIStroke")
+OpenStroke.Color = currentTheme.Accent
+OpenStroke.Thickness = 1.5
+OpenStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+OpenStroke.Parent = OpenButton
+
+Window.OpenButton = OpenButton
+Window.OpenStroke = OpenStroke
+
+-- Hover эффекты
+OpenButton.MouseEnter:Connect(function()
+    PlayTween(OpenButton, {Size = UDim2.new(0, 50, 0, 50), BackgroundColor3 = currentTheme.Accent, TextColor3 = currentTheme.Main}, 0.2)
+    PlayTween(OpenStroke, {Thickness = 2.5}, 0.2)
+end)
+
+OpenButton.MouseLeave:Connect(function()
+    PlayTween(OpenButton, {Size = UDim2.new(0, 45, 0, 45), BackgroundColor3 = currentTheme.Main, TextColor3 = currentTheme.Accent}, 0.2)
+    PlayTween(OpenStroke, {Thickness = 1.5}, 0.2)
+end)
+
+-- Drag для кнопки открытия
+local openDragging = false
+local openDragStart, openStartPos
+OpenButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        openDragging = true
+        openDragStart = input.Position
+        openStartPos = OpenButton.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                openDragging = false
+            end
+        end)
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if openDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - openDragStart
+        OpenButton.Position = UDim2.new(
+            openStartPos.X.Scale, openStartPos.X.Offset + delta.X,
+            openStartPos.Y.Scale, openStartPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+OpenButton.MouseButton1Click:Connect(function()
+    Window:Toggle()
+end)
+
+-- Регистрируем в теме
+Window:RegisterThemeObject(OpenButton, {BackgroundColor3 = "Main", TextColor3 = "Accent"}, {})
+Window:RegisterThemeObject(OpenStroke, {}, {Color = "Accent"})
+
     -- GlowFrame (внешняя тень)
     local GlowFrame = Instance.new("Frame")
     GlowFrame.Name = "GlowFrame"
@@ -412,23 +484,37 @@ function Nebula:CreateWindow(config)
 
     -- ========== МЕТОДЫ WINDOW ==========
 
-    function Window:Toggle()
-        Window.Visible = not Window.Visible
-        if Window.Visible then
-            ScreenGui.Enabled = true
-            GlowFrame.Visible = true
-            MainFrame.BackgroundTransparency = 1
-            PlayTween(MainFrame, {BackgroundTransparency = 0}, 0.3)
-            PlayTween(GlowFrame, {BackgroundTransparency = 0.7}, 0.3)
-        else
-            PlayTween(MainFrame, {BackgroundTransparency = 1}, 0.3)
-            PlayTween(GlowFrame, {BackgroundTransparency = 1}, 0.3)
-            task.delay(0.3, function()
+function Window:Toggle()
+    Window.Visible = not Window.Visible
+    if Window.Visible then
+        -- Показываем GUI
+        GlowFrame.Visible = true
+        MainFrame.BackgroundTransparency = 1
+        GlowFrame.BackgroundTransparency = 1
+        PlayTween(MainFrame, {BackgroundTransparency = 0}, 0.3)
+        PlayTween(GlowFrame, {BackgroundTransparency = 0.7}, 0.3)
+        -- Скрываем кнопку открытия
+        PlayTween(OpenButton, {Size = UDim2.new(0, 0, 0, 0)}, 0.25)
+        task.delay(0.25, function()
+            if Window.Visible then
+                OpenButton.Visible = false
+            end
+        end)
+    else
+        -- Скрываем GUI
+        PlayTween(MainFrame, {BackgroundTransparency = 1}, 0.3)
+        PlayTween(GlowFrame, {BackgroundTransparency = 1}, 0.3)
+        task.delay(0.3, function()
+            if not Window.Visible then
                 GlowFrame.Visible = false
-            end)
-        end
+                -- Показываем кнопку открытия
+                OpenButton.Visible = true
+                OpenButton.Size = UDim2.new(0, 0, 0, 0)
+                PlayTween(OpenButton, {Size = UDim2.new(0, 45, 0, 45)}, 0.3)
+            end
+        end)
     end
-
+end
     function Window:Destroy()
         ScreenGui:Destroy()
     end
