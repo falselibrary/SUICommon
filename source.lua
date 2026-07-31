@@ -4,6 +4,8 @@ local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
+local SoundService = game:GetService("SoundService")
+local Stats = game:GetService("Stats")
 
 local LocalPlayer = Players.LocalPlayer
 local UserId = LocalPlayer.UserId
@@ -132,27 +134,36 @@ local Themes = {
 }
 
 local AngryPhrases = {
-    "HEY! STOP POKING ME!",
-    "QUIT IT!!",
-    "I SAID STOP!",
-    "DO THAT AGAIN, I DARE YOU",
-    "IM GETTING ANGRY >:(",
-    "SERIOUSLY?!",
-    "THATS IT IM LEAVING",
-    "STOP TOUCHING MY FACE",
-    "YOU THINK THIS IS FUNNY?",
-    "ONE MORE TIME AND IM DONE",
-    "AAAARGH!!",
-    "WHY DO YOU KEEP CLICKING ME",
-    "GO AWAY!!",
-    "IM NOT A BUTTON",
-    "PLEASE... JUST STOP",
-    "OK FINE WHATEVER",
-    "YOU HAVE NO LIFE DO YOU",
-    "*INTERNAL SCREAMING*",
-    "THATS THE LAST STRAW",
-    "IM TELLING MOM",
+    "HEY! STOP POKING ME!", "QUIT IT!!", "I SAID STOP!", "DO THAT AGAIN, I DARE YOU",
+    "IM GETTING ANGRY >:(", "SERIOUSLY?!", "THATS IT IM LEAVING", "STOP TOUCHING MY FACE",
+    "YOU THINK THIS IS FUNNY?", "ONE MORE TIME AND IM DONE", "AAAARGH!!", "WHY DO YOU KEEP CLICKING ME",
+    "GO AWAY!!", "IM NOT A BUTTON", "PLEASE... JUST STOP", "OK FINE WHATEVER",
+    "YOU HAVE NO LIFE DO YOU", "*INTERNAL SCREAMING*", "THATS THE LAST STRAW", "IM TELLING MOM",
 }
+
+local SFXEnabled = true
+local SFXIds = {
+    Click = "rbxassetid://6895079853",
+    Toggle = "rbxassetid://6895079853",
+    Slider = "rbxassetid://6895079853",
+    TabSwitch = "rbxassetid://6895079853",
+    Notify = "rbxassetid://6895079853",
+    Error = "rbxassetid://6895079853",
+    Success = "rbxassetid://6895079853",
+}
+
+local function PlaySound(soundType, volume)
+    if not SFXEnabled then return end
+    pcall(function()
+        local sound = Instance.new("Sound")
+        sound.SoundId = SFXIds[soundType] or SFXIds.Click
+        sound.Volume = volume or 0.3
+        sound.PlaybackSpeed = soundType == "Error" and 0.8 or (soundType == "Success" and 1.2 or 1)
+        sound.Parent = SoundService
+        sound:Play()
+        game:GetService("Debris"):AddItem(sound, 2)
+    end)
+end
 
 local function Tween(obj, props, duration)
     if type(duration) ~= "number" then duration = 0.3 end
@@ -215,23 +226,18 @@ function Nebula:KeySystem(config)
     local discordLink = config.DiscordLink or nil
     local maxAttempts = config.MaxAttempts or 0
     local attemptCount = 0
-
     local currentTheme = Themes[themeName] or Themes.Dark
 
     if saveKey and isfile and isfile(fileName) then
         local savedKey = readfile(fileName)
         for _, k in pairs(keys) do
-            if savedKey == k then
-                return true
-            end
+            if savedKey == k then return true end
         end
     end
 
     local success = false
     local completed = false
     local avatarClickCount = 0
-    local avatarAngry = false
-    local avatarSpinning = false
 
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "NebulaKeySystem_" .. math.random(100000, 999999)
@@ -312,12 +318,8 @@ function Nebula:KeySystem(config)
     CloseBtn.TextSize = 22
     CloseBtn.TextColor3 = currentTheme.DimText
     CloseBtn.ZIndex = 5
-    CloseBtn.MouseEnter:Connect(function()
-        PlayTween(CloseBtn, {TextColor3 = Color3.fromRGB(255, 80, 80)}, 0.2)
-    end)
-    CloseBtn.MouseLeave:Connect(function()
-        PlayTween(CloseBtn, {TextColor3 = currentTheme.DimText}, 0.2)
-    end)
+    CloseBtn.MouseEnter:Connect(function() PlayTween(CloseBtn, {TextColor3 = Color3.fromRGB(255, 80, 80)}, 0.2) end)
+    CloseBtn.MouseLeave:Connect(function() PlayTween(CloseBtn, {TextColor3 = currentTheme.DimText}, 0.2) end)
 
     local AvatarHolder = Instance.new("Frame")
     AvatarHolder.Parent = KeyFrame
@@ -329,9 +331,12 @@ function Nebula:KeySystem(config)
     local AvatarImage = Instance.new("ImageLabel")
     AvatarImage.Parent = AvatarHolder
     AvatarImage.Size = UDim2.new(1, 0, 1, 0)
+    AvatarImage.Position = UDim2.new(0, 0, 0, 0)
+    AvatarImage.AnchorPoint = Vector2.new(0, 0)
     AvatarImage.BackgroundColor3 = currentTheme.Card
     AvatarImage.Image = IsAvatarReady and AvatarContent or ""
     AvatarImage.ZIndex = 6
+    AvatarImage.Rotation = 0
     CreateCorner(AvatarImage, 35)
     local avatarStroke = CreateStroke(AvatarImage, currentTheme.Accent, 2)
 
@@ -367,28 +372,23 @@ function Nebula:KeySystem(config)
 
     AvatarBtn.MouseButton1Click:Connect(function()
         avatarClickCount = avatarClickCount + 1
-
+        PlaySound("Click", 0.2)
         if avatarClickCount <= 3 then
-            local spinTween = TweenService:Create(AvatarImage, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {Rotation = AvatarImage.Rotation + 360})
-            spinTween:Play()
+            TweenService:Create(AvatarHolder, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {Rotation = AvatarHolder.Rotation + 360}):Play()
             MoodLabel.Text = "😊"
             AngrySpeech.Text = ""
-            AngrySpeech.TextColor3 = currentTheme.Accent
         elseif avatarClickCount <= 6 then
-            local spinTween = TweenService:Create(AvatarImage, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {Rotation = AvatarImage.Rotation + 720})
-            spinTween:Play()
+            TweenService:Create(AvatarHolder, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Rotation = AvatarHolder.Rotation + 720}):Play()
             MoodLabel.Text = "😐"
             AngrySpeech.Text = "hmm..."
             AngrySpeech.TextColor3 = currentTheme.DimText
         elseif avatarClickCount <= 10 then
-            local spinTween = TweenService:Create(AvatarImage, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {Rotation = AvatarImage.Rotation + 1080})
-            spinTween:Play()
+            TweenService:Create(AvatarHolder, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {Rotation = AvatarHolder.Rotation + 1080}):Play()
             MoodLabel.Text = "😠"
             avatarStroke.Color = Color3.fromRGB(255, 150, 50)
-            local phrase = AngryPhrases[math.random(1, #AngryPhrases)]
-            AngrySpeech.Text = phrase
+            AngrySpeech.Text = AngryPhrases[math.random(1, #AngryPhrases)]
             AngrySpeech.TextColor3 = Color3.fromRGB(255, 150, 50)
-
+            PlaySound("Error", 0.3)
             local origPos = AvatarHolder.Position
             for i = 1, 3 do
                 PlayTween(AvatarHolder, {Position = origPos + UDim2.new(0, (i % 2 == 0 and -5 or 5), 0, 0)}, 0.04)
@@ -396,36 +396,30 @@ function Nebula:KeySystem(config)
             end
             PlayTween(AvatarHolder, {Position = origPos}, 0.04)
         elseif avatarClickCount <= 15 then
-            local spinTween = TweenService:Create(AvatarImage, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {Rotation = AvatarImage.Rotation + 2160})
-            spinTween:Play()
+            TweenService:Create(AvatarHolder, TweenInfo.new(0.1, Enum.EasingStyle.Quad), {Rotation = AvatarHolder.Rotation + 2160}):Play()
             MoodLabel.Text = "🤬"
             avatarStroke.Color = Color3.fromRGB(255, 0, 0)
-            local phrase = AngryPhrases[math.random(1, #AngryPhrases)]
-            AngrySpeech.Text = phrase:upper() .. "!!!"
+            AngrySpeech.Text = AngryPhrases[math.random(1, #AngryPhrases)]:upper() .. "!!!"
             AngrySpeech.TextColor3 = Color3.fromRGB(255, 50, 50)
             AngrySpeech.TextSize = 12
-
+            PlaySound("Error", 0.5)
             local origPos = AvatarHolder.Position
             for i = 1, 6 do
                 PlayTween(AvatarHolder, {Position = origPos + UDim2.new(0, (i % 2 == 0 and -10 or 10), 0, (i % 2 == 0 and -3 or 3))}, 0.03)
                 task.wait(0.03)
             end
             PlayTween(AvatarHolder, {Position = origPos}, 0.04)
-
-            PlayTween(AvatarImage, {Size = UDim2.new(1.15, 0, 1.15, 0)}, 0.1)
-            task.delay(0.1, function()
-                PlayTween(AvatarImage, {Size = UDim2.new(1, 0, 1, 0)}, 0.1)
-            end)
         else
             MoodLabel.Text = "💀"
             AngrySpeech.Text = "i am dead inside now. thanks."
             AngrySpeech.TextColor3 = currentTheme.DimText
             AngrySpeech.TextSize = 10
             avatarStroke.Color = Color3.fromRGB(80, 80, 80)
-
-            PlayTween(AvatarImage, {ImageTransparency = 0.5, Rotation = AvatarImage.Rotation + 180}, 0.3)
-            task.delay(1, function()
-                PlayTween(AvatarImage, {ImageTransparency = 0, Rotation = 0}, 0.5)
+            PlayTween(AvatarImage, {ImageTransparency = 0.5}, 0.3)
+            TweenService:Create(AvatarHolder, TweenInfo.new(0.5), {Rotation = AvatarHolder.Rotation + 180}):Play()
+            task.delay(1.5, function()
+                PlayTween(AvatarImage, {ImageTransparency = 0}, 0.5)
+                TweenService:Create(AvatarHolder, TweenInfo.new(0.5), {Rotation = 0}):Play()
                 avatarStroke.Color = currentTheme.Accent
                 MoodLabel.Text = ""
                 AngrySpeech.Text = ""
@@ -513,12 +507,11 @@ function Nebula:KeySystem(config)
     btnLayout.Parent = BtnContainer
     btnLayout.FillDirection = Enum.FillDirection.Horizontal
     btnLayout.Padding = UDim.new(0, 8)
-    btnLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 
-    local function MakeKeyButton(text, primary, wide)
+    local function MakeKeyButton(text, primary)
         local Btn = Instance.new("TextButton")
         Btn.Parent = BtnContainer
-        Btn.Size = UDim2.new(0, wide and 120 or 95, 1, 0)
+        Btn.Size = UDim2.new(0, 95, 1, 0)
         Btn.BackgroundColor3 = primary and currentTheme.Accent or currentTheme.ElementBg
         Btn.Text = text
         Btn.Font = Enum.Font.Code
@@ -529,34 +522,18 @@ function Nebula:KeySystem(config)
         CreateCorner(Btn, 6)
         if not primary then CreateStroke(Btn, currentTheme.Stroke, 1) end
         Btn.MouseEnter:Connect(function()
-            if primary then
-                PlayTween(Btn, {BackgroundColor3 = currentTheme.Text, TextColor3 = currentTheme.Main}, 0.2)
-            else
-                PlayTween(Btn, {BackgroundColor3 = currentTheme.Hover}, 0.2)
-            end
+            PlayTween(Btn, {BackgroundColor3 = primary and currentTheme.Text or currentTheme.Hover}, 0.2)
         end)
         Btn.MouseLeave:Connect(function()
-            if primary then
-                PlayTween(Btn, {BackgroundColor3 = currentTheme.Accent, TextColor3 = currentTheme.Main}, 0.2)
-            else
-                PlayTween(Btn, {BackgroundColor3 = currentTheme.ElementBg}, 0.2)
-            end
+            PlayTween(Btn, {BackgroundColor3 = primary and currentTheme.Accent or currentTheme.ElementBg}, 0.2)
         end)
         return Btn
     end
 
-    local SubmitBtn = MakeKeyButton("SUBMIT", true, false)
-    local GetKeyBtn = MakeKeyButton("GET KEY", false, false)
-
-    local CopyLinkBtn = nil
-    if copyKeyURL then
-        CopyLinkBtn = MakeKeyButton("COPY LINK", false, false)
-    end
-
-    local DiscordBtn = nil
-    if discordLink then
-        DiscordBtn = MakeKeyButton("DISCORD", false, false)
-    end
+    local SubmitBtn = MakeKeyButton("SUBMIT", true)
+    local GetKeyBtn = MakeKeyButton("GET KEY", false)
+    local CopyLinkBtn = copyKeyURL and MakeKeyButton("COPY LINK", false) or nil
+    local DiscordBtn = discordLink and MakeKeyButton("DISCORD", false) or nil
 
     local StatusLabel = Instance.new("TextLabel")
     StatusLabel.Parent = KeyFrame
@@ -631,17 +608,16 @@ function Nebula:KeySystem(config)
         end
         if valid then
             success = true
+            PlaySound("Success", 0.4)
             StatusLabel.Text = "✓ KEY ACCEPTED — LOADING..."
             StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 120)
             PlayTween(inputStroke, {Color = Color3.fromRGB(100, 255, 120)}, 0.2)
-            PlayTween(InputIcon, {TextColor3 = Color3.fromRGB(100, 255, 120)}, 0.2)
-            if saveKey and writefile then
-                pcall(writefile, fileName, enteredKey)
-            end
+            if saveKey and writefile then pcall(writefile, fileName, enteredKey) end
             task.wait(0.8)
             CloseKeyGui()
         else
             attemptCount = attemptCount + 1
+            PlaySound("Error", 0.4)
             if maxAttempts > 0 then
                 AttemptsLabel.Text = "// ATTEMPTS: " .. attemptCount .. "/" .. maxAttempts
                 if attemptCount >= maxAttempts then
@@ -649,7 +625,6 @@ function Nebula:KeySystem(config)
                     StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
                     InputBox.TextEditable = false
                     SubmitBtn.Active = false
-                    SubmitBtn.BackgroundColor3 = currentTheme.ToggleOff
                     task.wait(2)
                     CloseKeyGui()
                     return
@@ -658,41 +633,35 @@ function Nebula:KeySystem(config)
             StatusLabel.Text = "✗ INVALID KEY — TRY AGAIN"
             StatusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
             PlayTween(inputStroke, {Color = Color3.fromRGB(255, 80, 80)}, 0.2)
-            PlayTween(InputIcon, {TextColor3 = Color3.fromRGB(255, 80, 80)}, 0.2)
             ShakeWindow()
             task.delay(1.5, function()
                 if not completed then
                     PlayTween(inputStroke, {Color = currentTheme.Stroke}, 0.3)
-                    PlayTween(InputIcon, {TextColor3 = currentTheme.DimText}, 0.3)
                 end
             end)
         end
     end)
 
     GetKeyBtn.MouseButton1Click:Connect(function()
+        PlaySound("Click", 0.2)
         if getKeyURL then
             if setclipboard then
                 setclipboard(getKeyURL)
-                StatusLabel.Text = "✓ KEY LINK COPIED TO CLIPBOARD"
+                StatusLabel.Text = "✓ KEY LINK COPIED"
                 StatusLabel.TextColor3 = currentTheme.Accent
             else
                 StatusLabel.Text = "// " .. getKeyURL
                 StatusLabel.TextColor3 = currentTheme.Accent
             end
-        else
-            StatusLabel.Text = "// NO KEY URL PROVIDED"
-            StatusLabel.TextColor3 = currentTheme.DimText
         end
     end)
 
     if CopyLinkBtn then
         CopyLinkBtn.MouseButton1Click:Connect(function()
+            PlaySound("Click", 0.2)
             if setclipboard then
                 setclipboard(copyKeyURL)
-                StatusLabel.Text = "✓ LINK COPIED: " .. copyKeyURL
-                StatusLabel.TextColor3 = currentTheme.Accent
-            else
-                StatusLabel.Text = "// " .. copyKeyURL
+                StatusLabel.Text = "✓ LINK COPIED"
                 StatusLabel.TextColor3 = currentTheme.Accent
             end
         end)
@@ -700,25 +669,22 @@ function Nebula:KeySystem(config)
 
     if DiscordBtn then
         DiscordBtn.MouseButton1Click:Connect(function()
+            PlaySound("Click", 0.2)
             if setclipboard then
                 setclipboard(discordLink)
-                StatusLabel.Text = "✓ DISCORD LINK COPIED"
-                StatusLabel.TextColor3 = currentTheme.Accent
-            else
-                StatusLabel.Text = "// " .. discordLink
+                StatusLabel.Text = "✓ DISCORD COPIED"
                 StatusLabel.TextColor3 = currentTheme.Accent
             end
         end)
     end
 
     CloseBtn.MouseButton1Click:Connect(function()
+        PlaySound("Click", 0.2)
         CloseKeyGui()
     end)
 
     InputBox.FocusLost:Connect(function(enterPressed)
-        if enterPressed then
-            SubmitBtn.MouseButton1Click:Fire()
-        end
+        if enterPressed then SubmitBtn.MouseButton1Click:Fire() end
     end)
 
     while not completed do task.wait() end
@@ -734,6 +700,7 @@ function Nebula:CreateWindow(config)
     local minX = (config.MinSize and config.MinSize[1]) or 420
     local minY = (config.MinSize and config.MinSize[2]) or 300
     local toggleKey = config.ToggleKey or Enum.KeyCode.RightShift
+    local searchKey = config.SearchKey or Enum.KeyCode.K
 
     local currentTheme = Themes[themeName] or Themes.Dark
     local Window = {}
@@ -742,6 +709,9 @@ function Nebula:CreateWindow(config)
     Window.ThemeObjects = {}
     Window.CurrentThemeName = themeName
     Window.Visible = true
+    Window.SearchableElements = {}
+    Window.Keybinds = {}
+    Window.SFXEnabled = true
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "NebulaUI_" .. tostring(math.random(100000, 999999))
@@ -763,24 +733,16 @@ function Nebula:CreateWindow(config)
     OpenButton.AutoButtonColor = false
     OpenButton.Visible = false
     OpenButton.ZIndex = 10
-    local OpenCorner = Instance.new("UICorner")
-    OpenCorner.CornerRadius = UDim.new(1, 0)
-    OpenCorner.Parent = OpenButton
-    local OpenStroke = Instance.new("UIStroke")
-    OpenStroke.Color = currentTheme.Accent
-    OpenStroke.Thickness = 1.5
-    OpenStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    OpenStroke.Parent = OpenButton
+    Instance.new("UICorner", OpenButton).CornerRadius = UDim.new(1, 0)
+    local OpenStroke = CreateStroke(OpenButton, currentTheme.Accent, 1.5)
     Window.OpenButton = OpenButton
     Window.OpenStroke = OpenStroke
 
     OpenButton.MouseEnter:Connect(function()
         PlayTween(OpenButton, {Size = UDim2.new(0, 50, 0, 50), BackgroundColor3 = currentTheme.Accent, TextColor3 = currentTheme.Main}, 0.2)
-        PlayTween(OpenStroke, {Thickness = 2.5}, 0.2)
     end)
     OpenButton.MouseLeave:Connect(function()
         PlayTween(OpenButton, {Size = UDim2.new(0, 45, 0, 45), BackgroundColor3 = currentTheme.Main, TextColor3 = currentTheme.Accent}, 0.2)
-        PlayTween(OpenStroke, {Thickness = 1.5}, 0.2)
     end)
 
     local openDragging = false
@@ -801,10 +763,138 @@ function Nebula:CreateWindow(config)
             OpenButton.Position = UDim2.new(openStartPos.X.Scale, openStartPos.X.Offset + delta.X, openStartPos.Y.Scale, openStartPos.Y.Offset + delta.Y)
         end
     end)
-    OpenButton.MouseButton1Click:Connect(function()
-        Window:Toggle()
+    OpenButton.MouseButton1Click:Connect(function() Window:Toggle() end)
+
+    -- WATERMARK
+    local WatermarkFrame = Instance.new("Frame")
+    WatermarkFrame.Name = "Watermark"
+    WatermarkFrame.Parent = ScreenGui
+    WatermarkFrame.Size = UDim2.new(0, 320, 0, 32)
+    WatermarkFrame.Position = UDim2.new(0, 15, 0, 10)
+    WatermarkFrame.BackgroundColor3 = currentTheme.Main
+    WatermarkFrame.BackgroundTransparency = 0.1
+    WatermarkFrame.Visible = false
+    WatermarkFrame.ZIndex = 15
+    CreateCorner(WatermarkFrame, 6)
+    local wmStroke = CreateStroke(WatermarkFrame, currentTheme.Stroke, 1)
+
+    local WmAccentBar = Instance.new("Frame")
+    WmAccentBar.Parent = WatermarkFrame
+    WmAccentBar.Size = UDim2.new(1, 0, 0, 2)
+    WmAccentBar.Position = UDim2.new(0, 0, 0, 0)
+    WmAccentBar.BackgroundColor3 = currentTheme.Accent
+    WmAccentBar.BorderSizePixel = 0
+    WmAccentBar.ZIndex = 16
+    CreateCorner(WmAccentBar, 6)
+
+    local WmGradient = Instance.new("UIGradient")
+    WmGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 100, 100)),
+        ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 255, 100)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 255, 100)),
+        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(100, 100, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 255)),
+    })
+    WmGradient.Parent = WmAccentBar
+
+    local wmGradOffset = 0
+    RunService.RenderStepped:Connect(function(dt)
+        wmGradOffset = (wmGradOffset + dt * 0.3) % 1
+        WmGradient.Offset = Vector2.new(wmGradOffset, 0)
     end)
 
+    local WmText = Instance.new("TextLabel")
+    WmText.Parent = WatermarkFrame
+    WmText.Size = UDim2.new(1, -10, 1, -4)
+    WmText.Position = UDim2.new(0, 5, 0, 3)
+    WmText.BackgroundTransparency = 1
+    WmText.Font = Enum.Font.Code
+    WmText.TextSize = 11
+    WmText.TextColor3 = currentTheme.Text
+    WmText.TextXAlignment = Enum.TextXAlignment.Left
+    WmText.Text = ""
+    WmText.ZIndex = 16
+
+    local WmMinBtn = Instance.new("TextButton")
+    WmMinBtn.Parent = WatermarkFrame
+    WmMinBtn.Size = UDim2.new(0, 20, 0, 20)
+    WmMinBtn.Position = UDim2.new(1, -25, 0, 6)
+    WmMinBtn.BackgroundTransparency = 1
+    WmMinBtn.Text = "—"
+    WmMinBtn.Font = Enum.Font.Code
+    WmMinBtn.TextSize = 12
+    WmMinBtn.TextColor3 = currentTheme.DimText
+    WmMinBtn.ZIndex = 17
+
+    local wmMinimized = false
+    local wmOrigSize = WatermarkFrame.Size
+
+    WmMinBtn.MouseButton1Click:Connect(function()
+        wmMinimized = not wmMinimized
+        if wmMinimized then
+            PlayTween(WatermarkFrame, {Size = UDim2.new(0, 30, 0, 30)}, 0.25)
+            WmText.Visible = false
+            WmMinBtn.Text = "+"
+        else
+            PlayTween(WatermarkFrame, {Size = wmOrigSize}, 0.25)
+            task.delay(0.25, function() WmText.Visible = true end)
+            WmMinBtn.Text = "—"
+        end
+    end)
+
+    local wmDrag = false
+    local wmDragStart, wmStartPos
+    WatermarkFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            wmDrag = true
+            wmDragStart = input.Position
+            wmStartPos = WatermarkFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then wmDrag = false end
+            end)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if wmDrag and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - wmDragStart
+            WatermarkFrame.Position = UDim2.new(wmStartPos.X.Scale, wmStartPos.X.Offset + delta.X, wmStartPos.Y.Scale, wmStartPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    Window.WatermarkFrame = WatermarkFrame
+    Window.WmText = WmText
+    Window.WmAccentBar = WmAccentBar
+
+    local wmStartTime = tick()
+    local wmCustomText = nil
+    RunService.RenderStepped:Connect(function()
+        if WatermarkFrame.Visible and not wmMinimized then
+            local fps = math.floor(1 / RunService.RenderStepped:Wait())
+            local ping = 0
+            pcall(function() ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue()) end)
+            local elapsed = math.floor(tick() - wmStartTime)
+            local hrs = math.floor(elapsed / 3600)
+            local mins = math.floor((elapsed % 3600) / 60)
+            local secs = elapsed % 60
+            local timeStr = string.format("%02d:%02d:%02d", hrs, mins, secs)
+            local baseText = (wmCustomText or title) .. " | " .. LocalPlayer.DisplayName .. " | FPS: " .. fps .. " | Ping: " .. ping .. "ms | " .. timeStr
+            WmText.Text = baseText
+        end
+    end)
+
+    function Window:SetWatermarkText(text)
+        wmCustomText = text
+    end
+
+    function Window:ShowWatermark()
+        WatermarkFrame.Visible = true
+    end
+
+    function Window:HideWatermark()
+        WatermarkFrame.Visible = false
+    end
+
+    -- MAIN WINDOW
     local GlowFrame = Instance.new("Frame")
     GlowFrame.Name = "GlowFrame"
     GlowFrame.Parent = ScreenGui
@@ -828,7 +918,6 @@ function Nebula:CreateWindow(config)
     Window.MainStroke = mainStroke
 
     local TopBar = Instance.new("Frame")
-    TopBar.Name = "TopBar"
     TopBar.Parent = MainFrame
     TopBar.Size = UDim2.new(1, 0, 0, 40)
     TopBar.BackgroundColor3 = currentTheme.TopBar
@@ -851,7 +940,6 @@ function Nebula:CreateWindow(config)
     Window.TopBarLine = TopBarLine
 
     local Sidebar = Instance.new("Frame")
-    Sidebar.Name = "Sidebar"
     Sidebar.Parent = MainFrame
     Sidebar.BackgroundColor3 = currentTheme.Sidebar
     Sidebar.Position = UDim2.new(0, 0, 0, 41)
@@ -905,8 +993,10 @@ function Nebula:CreateWindow(config)
     local FooterAvatar = Instance.new("ImageLabel")
     FooterAvatar.Parent = FooterAvatarHolder
     FooterAvatar.Size = UDim2.new(1, 0, 1, 0)
+    FooterAvatar.Position = UDim2.new(0, 0, 0, 0)
     FooterAvatar.BackgroundColor3 = currentTheme.Main
     FooterAvatar.Image = IsAvatarReady and AvatarContent or ""
+    FooterAvatar.Rotation = 0
     CreateCorner(FooterAvatar, 16)
     local footerAvStroke = CreateStroke(FooterAvatar, currentTheme.Accent, 1.5)
 
@@ -932,16 +1022,16 @@ function Nebula:CreateWindow(config)
 
     FooterAvatarBtn.MouseButton1Click:Connect(function()
         footerClickCount = footerClickCount + 1
+        PlaySound("Click", 0.2)
         if footerClickCount <= 3 then
-            local spin = TweenService:Create(FooterAvatar, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {Rotation = FooterAvatar.Rotation + 360})
-            spin:Play()
+            TweenService:Create(FooterAvatarHolder, TweenInfo.new(0.4), {Rotation = FooterAvatarHolder.Rotation + 360}):Play()
             FooterAngrySpeech.Text = ""
         elseif footerClickCount <= 8 then
-            local spin = TweenService:Create(FooterAvatar, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Rotation = FooterAvatar.Rotation + 720})
-            spin:Play()
+            TweenService:Create(FooterAvatarHolder, TweenInfo.new(0.2), {Rotation = FooterAvatarHolder.Rotation + 720}):Play()
             footerAvStroke.Color = Color3.fromRGB(255, 150, 50)
             FooterAngrySpeech.Text = AngryPhrases[math.random(1, #AngryPhrases)]
             FooterAngrySpeech.TextColor3 = Color3.fromRGB(255, 150, 50)
+            PlaySound("Error", 0.3)
             local origPos = FooterAvatarHolder.Position
             for i = 1, 3 do
                 PlayTween(FooterAvatarHolder, {Position = origPos + UDim2.new(0, (i % 2 == 0 and -4 or 4), 0, 0)}, 0.03)
@@ -949,11 +1039,11 @@ function Nebula:CreateWindow(config)
             end
             PlayTween(FooterAvatarHolder, {Position = origPos}, 0.03)
         elseif footerClickCount <= 12 then
-            local spin = TweenService:Create(FooterAvatar, TweenInfo.new(0.1, Enum.EasingStyle.Quad), {Rotation = FooterAvatar.Rotation + 1440})
-            spin:Play()
+            TweenService:Create(FooterAvatarHolder, TweenInfo.new(0.1), {Rotation = FooterAvatarHolder.Rotation + 1440}):Play()
             footerAvStroke.Color = Color3.fromRGB(255, 0, 0)
             FooterAngrySpeech.Text = AngryPhrases[math.random(1, #AngryPhrases)]:upper() .. "!!!"
             FooterAngrySpeech.TextColor3 = Color3.fromRGB(255, 50, 50)
+            PlaySound("Error", 0.5)
             local origPos = FooterAvatarHolder.Position
             for i = 1, 5 do
                 PlayTween(FooterAvatarHolder, {Position = origPos + UDim2.new(0, (i % 2 == 0 and -6 or 6), 0, (i % 2 == 0 and -2 or 2))}, 0.03)
@@ -966,7 +1056,8 @@ function Nebula:CreateWindow(config)
             footerAvStroke.Color = Color3.fromRGB(80, 80, 80)
             PlayTween(FooterAvatar, {ImageTransparency = 0.5}, 0.3)
             task.delay(1.5, function()
-                PlayTween(FooterAvatar, {ImageTransparency = 0, Rotation = 0}, 0.5)
+                PlayTween(FooterAvatar, {ImageTransparency = 0}, 0.5)
+                TweenService:Create(FooterAvatarHolder, TweenInfo.new(0.5), {Rotation = 0}):Play()
                 footerAvStroke.Color = currentTheme.Accent
                 FooterAngrySpeech.Text = ""
                 footerClickCount = 0
@@ -999,7 +1090,6 @@ function Nebula:CreateWindow(config)
     FooterTag.TextTruncate = Enum.TextTruncate.AtEnd
 
     local Logo = Instance.new("TextLabel")
-    Logo.Name = "Logo"
     Logo.Parent = TopBar
     Logo.Text = title
     Logo.Font = Enum.Font.Code
@@ -1016,7 +1106,7 @@ function Nebula:CreateWindow(config)
     VersionLabel.Size = UDim2.new(0, 40, 1, 0)
     VersionLabel.Position = UDim2.new(1, -120, 0, 0)
     VersionLabel.BackgroundTransparency = 1
-    VersionLabel.Text = "v2.1"
+    VersionLabel.Text = "v2.2"
     VersionLabel.Font = Enum.Font.Code
     VersionLabel.TextSize = 10
     VersionLabel.TextColor3 = currentTheme.DimText
@@ -1033,7 +1123,7 @@ function Nebula:CreateWindow(config)
     CloseBtn.TextColor3 = currentTheme.DimText
     CloseBtn.MouseEnter:Connect(function() PlayTween(CloseBtn, {TextColor3 = Color3.fromRGB(255, 80, 80)}, 0.2) end)
     CloseBtn.MouseLeave:Connect(function() PlayTween(CloseBtn, {TextColor3 = currentTheme.DimText}, 0.2) end)
-    CloseBtn.MouseButton1Click:Connect(function() Window:Toggle() end)
+    CloseBtn.MouseButton1Click:Connect(function() PlaySound("Click", 0.2) Window:Toggle() end)
 
     local MinBtn = Instance.new("TextButton")
     MinBtn.Parent = TopBar
@@ -1046,10 +1136,9 @@ function Nebula:CreateWindow(config)
     MinBtn.TextColor3 = currentTheme.DimText
     MinBtn.MouseEnter:Connect(function() PlayTween(MinBtn, {TextColor3 = currentTheme.Accent}, 0.2) end)
     MinBtn.MouseLeave:Connect(function() PlayTween(MinBtn, {TextColor3 = currentTheme.DimText}, 0.2) end)
-    MinBtn.MouseButton1Click:Connect(function() Window:Toggle() end)
+    MinBtn.MouseButton1Click:Connect(function() PlaySound("Click", 0.2) Window:Toggle() end)
 
     local PageContainer = Instance.new("Frame")
-    PageContainer.Name = "PageContainer"
     PageContainer.Parent = MainFrame
     PageContainer.BackgroundTransparency = 1
     PageContainer.Position = UDim2.new(0, 151, 0, 41)
@@ -1075,9 +1164,7 @@ function Nebula:CreateWindow(config)
         if isResizing then
             local mousePos = UserInputService:GetMouseLocation()
             local framePos = GlowFrame.AbsolutePosition
-            local newX = math.max(minX, mousePos.X - framePos.X)
-            local newY = math.max(minY, mousePos.Y - framePos.Y - 36)
-            GlowFrame.Size = UDim2.new(0, newX, 0, newY)
+            GlowFrame.Size = UDim2.new(0, math.max(minX, mousePos.X - framePos.X), 0, math.max(minY, mousePos.Y - framePos.Y - 36))
         end
     end)
 
@@ -1100,14 +1187,426 @@ function Nebula:CreateWindow(config)
         end
     end)
 
+    -- SEARCH PALETTE
+    local SearchOverlay = Instance.new("Frame")
+    SearchOverlay.Parent = ScreenGui
+    SearchOverlay.Size = UDim2.new(1, 0, 1, 0)
+    SearchOverlay.BackgroundColor3 = Color3.new(0, 0, 0)
+    SearchOverlay.BackgroundTransparency = 1
+    SearchOverlay.Visible = false
+    SearchOverlay.ZIndex = 50
+
+    local SearchFrame = Instance.new("Frame")
+    SearchFrame.Parent = SearchOverlay
+    SearchFrame.Size = UDim2.new(0, 400, 0, 50)
+    SearchFrame.Position = UDim2.new(0.5, -200, 0.3, 0)
+    SearchFrame.BackgroundColor3 = currentTheme.Main
+    SearchFrame.ZIndex = 51
+    CreateCorner(SearchFrame, 8)
+    local searchStroke = CreateStroke(SearchFrame, currentTheme.Accent, 1.5)
+
+    local SearchIcon = Instance.new("TextLabel")
+    SearchIcon.Parent = SearchFrame
+    SearchIcon.Size = UDim2.new(0, 30, 1, 0)
+    SearchIcon.Position = UDim2.new(0, 10, 0, 0)
+    SearchIcon.BackgroundTransparency = 1
+    SearchIcon.Text = "🔍"
+    SearchIcon.Font = Enum.Font.Code
+    SearchIcon.TextSize = 16
+    SearchIcon.TextColor3 = currentTheme.Accent
+    SearchIcon.ZIndex = 52
+
+    local SearchInput = Instance.new("TextBox")
+    SearchInput.Parent = SearchFrame
+    SearchInput.Size = UDim2.new(1, -50, 1, 0)
+    SearchInput.Position = UDim2.new(0, 42, 0, 0)
+    SearchInput.BackgroundTransparency = 1
+    SearchInput.Text = ""
+    SearchInput.PlaceholderText = "Search elements, tabs..."
+    SearchInput.PlaceholderColor3 = currentTheme.DimText
+    SearchInput.TextColor3 = currentTheme.Text
+    SearchInput.Font = Enum.Font.Code
+    SearchInput.TextSize = 14
+    SearchInput.TextXAlignment = Enum.TextXAlignment.Left
+    SearchInput.ClearTextOnFocus = true
+    SearchInput.ZIndex = 52
+
+    local SearchResults = Instance.new("ScrollingFrame")
+    SearchResults.Parent = SearchFrame
+    SearchResults.Size = UDim2.new(1, 0, 0, 0)
+    SearchResults.Position = UDim2.new(0, 0, 1, 5)
+    SearchResults.BackgroundColor3 = currentTheme.Main
+    SearchResults.BorderSizePixel = 0
+    SearchResults.ScrollBarThickness = 2
+    SearchResults.ScrollBarImageColor3 = currentTheme.Accent
+    SearchResults.Visible = false
+    SearchResults.ZIndex = 51
+    SearchResults.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    SearchResults.CanvasSize = UDim2.new(0, 0, 0, 0)
+    CreateCorner(SearchResults, 6)
+    CreateStroke(SearchResults, currentTheme.Stroke, 1)
+
+    local searchResultLayout = Instance.new("UIListLayout")
+    searchResultLayout.Parent = SearchResults
+    searchResultLayout.Padding = UDim.new(0, 2)
+    CreatePadding(SearchResults, 4, 4, 4, 4)
+
+    local searchOpen = false
+
+    local function CloseSearch()
+        searchOpen = false
+        PlayTween(SearchOverlay, {BackgroundTransparency = 1}, 0.2)
+        PlayTween(SearchFrame, {Position = UDim2.new(0.5, -200, 0.25, 0)}, 0.2)
+        task.delay(0.2, function()
+            SearchOverlay.Visible = false
+            SearchResults.Visible = false
+        end)
+    end
+
+    local function OpenSearch()
+        searchOpen = true
+        SearchOverlay.Visible = true
+        SearchInput.Text = ""
+        SearchResults.Visible = false
+        for _, c in pairs(SearchResults:GetChildren()) do
+            if c:IsA("TextButton") then c:Destroy() end
+        end
+        SearchFrame.Position = UDim2.new(0.5, -200, 0.25, 0)
+        SearchOverlay.BackgroundTransparency = 1
+        PlayTween(SearchOverlay, {BackgroundTransparency = 0.6}, 0.2)
+        PlayTween(SearchFrame, {Position = UDim2.new(0.5, -200, 0.3, 0)}, 0.2)
+        task.delay(0.1, function() SearchInput:CaptureFocus() end)
+    end
+
+    SearchOverlay.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local mx = input.Position.X
+            local my = input.Position.Y
+            local sfPos = SearchFrame.AbsolutePosition
+            local sfSize = SearchFrame.AbsoluteSize
+            if mx < sfPos.X or mx > sfPos.X + sfSize.X or my < sfPos.Y or my > sfPos.Y + sfSize.Y + 250 then
+                CloseSearch()
+            end
+        end
+    end)
+
+    SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
+        local query = SearchInput.Text:lower()
+        for _, c in pairs(SearchResults:GetChildren()) do
+            if c:IsA("TextButton") then c:Destroy() end
+        end
+        if query == "" then
+            SearchResults.Visible = false
+            SearchResults.Size = UDim2.new(1, 0, 0, 0)
+            return
+        end
+        local results = {}
+        for _, elem in pairs(Window.SearchableElements) do
+            if elem.Name:lower():find(query) then
+                table.insert(results, elem)
+            end
+        end
+        for _, tab in pairs(Window.Tabs) do
+            if tab.Name:lower():find(query) then
+                table.insert(results, {Name = "Tab: " .. tab.Name, Type = "tab", Tab = tab})
+            end
+        end
+        if #results > 0 then
+            SearchResults.Visible = true
+            local height = math.min(#results * 30 + 10, 200)
+            SearchResults.Size = UDim2.new(1, 0, 0, height)
+            for _, res in pairs(results) do
+                local rb = Instance.new("TextButton")
+                rb.Parent = SearchResults
+                rb.Size = UDim2.new(1, 0, 0, 28)
+                rb.BackgroundColor3 = currentTheme.Card
+                rb.Font = Enum.Font.Code
+                rb.TextSize = 12
+                rb.Text = "  " .. (res.Type or "element") .. ": " .. res.Name
+                rb.TextColor3 = currentTheme.Text
+                rb.TextXAlignment = Enum.TextXAlignment.Left
+                rb.ZIndex = 53
+                CreateCorner(rb, 4)
+                rb.MouseEnter:Connect(function() PlayTween(rb, {BackgroundColor3 = currentTheme.Hover}, 0.15) end)
+                rb.MouseLeave:Connect(function() PlayTween(rb, {BackgroundColor3 = currentTheme.Card}, 0.15) end)
+                rb.MouseButton1Click:Connect(function()
+                    PlaySound("Click", 0.2)
+                    CloseSearch()
+                    if res.Type == "tab" and res.Tab and res.Tab.Activate then
+                        res.Tab.Activate()
+                    elseif res.TabName then
+                        for _, t in pairs(Window.Tabs) do
+                            if t.Name == res.TabName and t.Activate then
+                                t.Activate()
+                                break
+                            end
+                        end
+                    end
+                end)
+            end
+        else
+            SearchResults.Visible = true
+            SearchResults.Size = UDim2.new(1, 0, 0, 40)
+            local noRes = Instance.new("TextLabel")
+            noRes.Parent = SearchResults
+            noRes.Size = UDim2.new(1, 0, 0, 30)
+            noRes.BackgroundTransparency = 1
+            noRes.Text = "  No results found"
+            noRes.Font = Enum.Font.Code
+            noRes.TextSize = 12
+            noRes.TextColor3 = currentTheme.DimText
+            noRes.TextXAlignment = Enum.TextXAlignment.Left
+            noRes.ZIndex = 53
+        end
+    end)
+
+    -- KEYBOARD VISUALIZER
+    local KeyboardFrame = Instance.new("Frame")
+    KeyboardFrame.Name = "KeyboardVisualizer"
+    KeyboardFrame.Parent = ScreenGui
+    KeyboardFrame.Size = UDim2.new(0, 620, 0, 230)
+    KeyboardFrame.Position = UDim2.new(0.5, -310, 1, -245)
+    KeyboardFrame.BackgroundColor3 = currentTheme.Main
+    KeyboardFrame.BackgroundTransparency = 0.05
+    KeyboardFrame.Visible = false
+    KeyboardFrame.ZIndex = 30
+    CreateCorner(KeyboardFrame, 8)
+    local kbStroke = CreateStroke(KeyboardFrame, currentTheme.Stroke, 1)
+
+    local KbTitle = Instance.new("TextLabel")
+    KbTitle.Parent = KeyboardFrame
+    KbTitle.Size = UDim2.new(1, -200, 0, 25)
+    KbTitle.Position = UDim2.new(0, 10, 0, 3)
+    KbTitle.BackgroundTransparency = 1
+    KbTitle.Text = "// KEYBOARD VISUALIZER"
+    KbTitle.Font = Enum.Font.Code
+    KbTitle.TextSize = 10
+    KbTitle.TextColor3 = currentTheme.Accent
+    KbTitle.TextXAlignment = Enum.TextXAlignment.Left
+    KbTitle.ZIndex = 31
+
+    local KbBindsLabel = Instance.new("TextLabel")
+    KbBindsLabel.Parent = KeyboardFrame
+    KbBindsLabel.Size = UDim2.new(0, 180, 0, 25)
+    KbBindsLabel.Position = UDim2.new(1, -190, 0, 3)
+    KbBindsLabel.BackgroundTransparency = 1
+    KbBindsLabel.Text = "BINDS"
+    KbBindsLabel.Font = Enum.Font.Code
+    KbBindsLabel.TextSize = 10
+    KbBindsLabel.TextColor3 = currentTheme.Accent
+    KbBindsLabel.TextXAlignment = Enum.TextXAlignment.Left
+    KbBindsLabel.ZIndex = 31
+
+    local KbBindsList = Instance.new("ScrollingFrame")
+    KbBindsList.Parent = KeyboardFrame
+    KbBindsList.Size = UDim2.new(0, 175, 1, -30)
+    KbBindsList.Position = UDim2.new(1, -185, 0, 28)
+    KbBindsList.BackgroundColor3 = currentTheme.Card
+    KbBindsList.BackgroundTransparency = 0.5
+    KbBindsList.BorderSizePixel = 0
+    KbBindsList.ScrollBarThickness = 2
+    KbBindsList.ScrollBarImageColor3 = currentTheme.Accent
+    KbBindsList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    KbBindsList.CanvasSize = UDim2.new(0, 0, 0, 0)
+    KbBindsList.ZIndex = 31
+    CreateCorner(KbBindsList, 4)
+
+    local kbBindsLayout = Instance.new("UIListLayout")
+    kbBindsLayout.Parent = KbBindsList
+    kbBindsLayout.Padding = UDim.new(0, 2)
+    CreatePadding(KbBindsList, 4, 4, 4, 4)
+
+    local KbKeysContainer = Instance.new("Frame")
+    KbKeysContainer.Parent = KeyboardFrame
+    KbKeysContainer.Size = UDim2.new(1, -195, 1, -30)
+    KbKeysContainer.Position = UDim2.new(0, 5, 0, 28)
+    KbKeysContainer.BackgroundTransparency = 1
+    KbKeysContainer.ZIndex = 31
+
+    local keyboardLayout = {
+        {"Esc","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"},
+        {"`","1","2","3","4","5","6","7","8","9","0","-","=","Back"},
+        {"Tab","Q","W","E","R","T","Y","U","I","O","P","[","]","\\"},
+        {"Caps","A","S","D","F","G","H","J","K","L",";","'","Enter"},
+        {"Shift","Z","X","C","V","B","N","M",",",".","/","RShift"},
+        {"Ctrl","Win","Alt","Space","RAlt","Fn","Menu","RCtrl"},
+    }
+
+    local keyNameToEnum = {
+        ["Esc"] = Enum.KeyCode.Escape, ["F1"] = Enum.KeyCode.F1, ["F2"] = Enum.KeyCode.F2,
+        ["F3"] = Enum.KeyCode.F3, ["F4"] = Enum.KeyCode.F4, ["F5"] = Enum.KeyCode.F5,
+        ["F6"] = Enum.KeyCode.F6, ["F7"] = Enum.KeyCode.F7, ["F8"] = Enum.KeyCode.F8,
+        ["F9"] = Enum.KeyCode.F9, ["F10"] = Enum.KeyCode.F10, ["F11"] = Enum.KeyCode.F11,
+        ["F12"] = Enum.KeyCode.F12, ["`"] = Enum.KeyCode.Backquote, ["1"] = Enum.KeyCode.One,
+        ["2"] = Enum.KeyCode.Two, ["3"] = Enum.KeyCode.Three, ["4"] = Enum.KeyCode.Four,
+        ["5"] = Enum.KeyCode.Five, ["6"] = Enum.KeyCode.Six, ["7"] = Enum.KeyCode.Seven,
+        ["8"] = Enum.KeyCode.Eight, ["9"] = Enum.KeyCode.Nine, ["0"] = Enum.KeyCode.Zero,
+        ["-"] = Enum.KeyCode.Minus, ["="] = Enum.KeyCode.Equals, ["Back"] = Enum.KeyCode.Backspace,
+        ["Tab"] = Enum.KeyCode.Tab, ["Q"] = Enum.KeyCode.Q, ["W"] = Enum.KeyCode.W,
+        ["E"] = Enum.KeyCode.E, ["R"] = Enum.KeyCode.R, ["T"] = Enum.KeyCode.T,
+        ["Y"] = Enum.KeyCode.Y, ["U"] = Enum.KeyCode.U, ["I"] = Enum.KeyCode.I,
+        ["O"] = Enum.KeyCode.O, ["P"] = Enum.KeyCode.P, ["["] = Enum.KeyCode.LeftBracket,
+        ["]"] = Enum.KeyCode.RightBracket, ["\\"] = Enum.KeyCode.BackSlash,
+        ["Caps"] = Enum.KeyCode.CapsLock, ["A"] = Enum.KeyCode.A, ["S"] = Enum.KeyCode.S,
+        ["D"] = Enum.KeyCode.D, ["F"] = Enum.KeyCode.F, ["G"] = Enum.KeyCode.G,
+        ["H"] = Enum.KeyCode.H, ["J"] = Enum.KeyCode.J, ["K"] = Enum.KeyCode.K,
+        ["L"] = Enum.KeyCode.L, [";"] = Enum.KeyCode.Semicolon, ["'"] = Enum.KeyCode.Quote,
+        ["Enter"] = Enum.KeyCode.Return, ["Shift"] = Enum.KeyCode.LeftShift,
+        ["Z"] = Enum.KeyCode.Z, ["X"] = Enum.KeyCode.X, ["C"] = Enum.KeyCode.C,
+        ["V"] = Enum.KeyCode.V, ["B"] = Enum.KeyCode.B, ["N"] = Enum.KeyCode.N,
+        ["M"] = Enum.KeyCode.M, [","] = Enum.KeyCode.Comma, ["."] = Enum.KeyCode.Period,
+        ["/"] = Enum.KeyCode.Slash, ["RShift"] = Enum.KeyCode.RightShift,
+        ["Ctrl"] = Enum.KeyCode.LeftControl, ["Win"] = Enum.KeyCode.LeftSuper,
+        ["Alt"] = Enum.KeyCode.LeftAlt, ["Space"] = Enum.KeyCode.Space,
+        ["RAlt"] = Enum.KeyCode.RightAlt, ["Fn"] = Enum.KeyCode.Unknown,
+        ["Menu"] = Enum.KeyCode.Menu, ["RCtrl"] = Enum.KeyCode.RightControl,
+    }
+
+    local wideKeys = {
+        ["Back"] = 55, ["Tab"] = 50, ["\\"] = 35, ["Caps"] = 55,
+        ["Enter"] = 60, ["Shift"] = 70, ["RShift"] = 70,
+        ["Space"] = 200, ["Ctrl"] = 45, ["RCtrl"] = 45,
+    }
+
+    local keyButtons = {}
+
+    for rowIdx, row in ipairs(keyboardLayout) do
+        local xOffset = 0
+        for _, keyName in ipairs(row) do
+            local width = wideKeys[keyName] or 28
+            local kb = Instance.new("Frame")
+            kb.Parent = KbKeysContainer
+            kb.Size = UDim2.new(0, width, 0, 26)
+            kb.Position = UDim2.new(0, xOffset, 0, (rowIdx - 1) * 30)
+            kb.BackgroundColor3 = currentTheme.Card
+            kb.ZIndex = 32
+            CreateCorner(kb, 4)
+            CreateStroke(kb, currentTheme.Stroke, 1)
+
+            local kl = Instance.new("TextLabel")
+            kl.Parent = kb
+            kl.Size = UDim2.new(1, 0, 1, 0)
+            kl.BackgroundTransparency = 1
+            kl.Text = keyName
+            kl.Font = Enum.Font.Code
+            kl.TextSize = width > 40 and 9 or 10
+            kl.TextColor3 = currentTheme.DimText
+            kl.ZIndex = 33
+
+            local keyEnum = keyNameToEnum[keyName]
+            if keyEnum then
+                keyButtons[keyEnum] = {Frame = kb, Label = kl, Name = keyName}
+            end
+
+            xOffset = xOffset + width + 3
+        end
+    end
+
+    UserInputService.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            local kb = keyButtons[input.KeyCode]
+            if kb and KeyboardFrame.Visible then
+                PlayTween(kb.Frame, {BackgroundColor3 = currentTheme.Accent}, 0.08)
+                PlayTween(kb.Label, {TextColor3 = currentTheme.Main}, 0.08)
+            end
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            local kb = keyButtons[input.KeyCode]
+            if kb and KeyboardFrame.Visible then
+                PlayTween(kb.Frame, {BackgroundColor3 = currentTheme.Card}, 0.2)
+                PlayTween(kb.Label, {TextColor3 = currentTheme.DimText}, 0.2)
+            end
+        end
+    end)
+
+    local function UpdateBindsList()
+        for _, c in pairs(KbBindsList:GetChildren()) do
+            if c:IsA("Frame") then c:Destroy() end
+        end
+        for _, bind in pairs(Window.Keybinds) do
+            local bf = Instance.new("Frame")
+            bf.Parent = KbBindsList
+            bf.Size = UDim2.new(1, 0, 0, 22)
+            bf.BackgroundColor3 = currentTheme.ElementBg
+            bf.ZIndex = 32
+            CreateCorner(bf, 3)
+
+            local bKey = Instance.new("TextLabel")
+            bKey.Parent = bf
+            bKey.Size = UDim2.new(0, 35, 1, 0)
+            bKey.Position = UDim2.new(0, 4, 0, 0)
+            bKey.BackgroundTransparency = 1
+            bKey.Text = "[" .. bind.Key .. "]"
+            bKey.Font = Enum.Font.Code
+            bKey.TextSize = 9
+            bKey.TextColor3 = currentTheme.Accent
+            bKey.TextXAlignment = Enum.TextXAlignment.Left
+            bKey.ZIndex = 33
+
+            local bName = Instance.new("TextLabel")
+            bName.Parent = bf
+            bName.Size = UDim2.new(1, -42, 1, 0)
+            bName.Position = UDim2.new(0, 40, 0, 0)
+            bName.BackgroundTransparency = 1
+            bName.Text = bind.Name
+            bName.Font = Enum.Font.Code
+            bName.TextSize = 9
+            bName.TextColor3 = currentTheme.Text
+            bName.TextXAlignment = Enum.TextXAlignment.Left
+            bName.TextTruncate = Enum.TextTruncate.AtEnd
+            bName.ZIndex = 33
+        end
+    end
+
+    function Window:ShowKeyboard()
+        KeyboardFrame.Visible = true
+        UpdateBindsList()
+    end
+
+    function Window:HideKeyboard()
+        KeyboardFrame.Visible = false
+    end
+
+    function Window:RegisterKeybind(name, keyCode)
+        table.insert(Window.Keybinds, {Name = name, Key = keyCode.Name})
+        if KeyboardFrame.Visible then UpdateBindsList() end
+    end
+
+    local kbDrag = false
+    local kbDragStart, kbStartPos
+    KeyboardFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            kbDrag = true
+            kbDragStart = input.Position
+            kbStartPos = KeyboardFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then kbDrag = false end
+            end)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if kbDrag and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - kbDragStart
+            KeyboardFrame.Position = UDim2.new(kbStartPos.X.Scale, kbStartPos.X.Offset + delta.X, kbStartPos.Y.Scale, kbStartPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    -- INPUT HANDLER
     UserInputService.InputBegan:Connect(function(input, processed)
         if not processed and input.KeyCode == toggleKey then
             Window:Toggle()
+        end
+        if input.KeyCode == searchKey and (UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)) then
+            if searchOpen then CloseSearch() else OpenSearch() end
         end
     end)
 
     function Window:Toggle()
         Window.Visible = not Window.Visible
+        PlaySound("Click", 0.2)
         if Window.Visible then
             GlowFrame.Visible = true
             MainFrame.BackgroundTransparency = 1
@@ -1136,6 +1635,11 @@ function Nebula:CreateWindow(config)
         ScreenGui:Destroy()
     end
 
+    function Window:SetSFX(enabled)
+        SFXEnabled = enabled
+        Window.SFXEnabled = enabled
+    end
+
     function Window:SetTheme(name)
         if not Themes[name] then return end
         currentTheme = Themes[name]
@@ -1158,6 +1662,19 @@ function Nebula:CreateWindow(config)
         PlayTween(footerAvStroke, {Color = currentTheme.Accent}, d)
         PlayTween(FooterName, {TextColor3 = currentTheme.Text}, d)
         PlayTween(FooterTag, {TextColor3 = currentTheme.DimText}, d)
+        PlayTween(WatermarkFrame, {BackgroundColor3 = currentTheme.Main}, d)
+        PlayTween(wmStroke, {Color = currentTheme.Stroke}, d)
+        PlayTween(WmText, {TextColor3 = currentTheme.Text}, d)
+        PlayTween(KeyboardFrame, {BackgroundColor3 = currentTheme.Main}, d)
+        PlayTween(kbStroke, {Color = currentTheme.Stroke}, d)
+        PlayTween(KbTitle, {TextColor3 = currentTheme.Accent}, d)
+        PlayTween(SearchFrame, {BackgroundColor3 = currentTheme.Main}, d)
+        PlayTween(searchStroke, {Color = currentTheme.Accent}, d)
+        PlayTween(SearchInput, {TextColor3 = currentTheme.Text}, d)
+        for _, kb in pairs(keyButtons) do
+            PlayTween(kb.Frame, {BackgroundColor3 = currentTheme.Card}, d)
+            PlayTween(kb.Label, {TextColor3 = currentTheme.DimText}, d)
+        end
         for _, obj in pairs(Window.ThemeObjects) do
             if obj.Instance and obj.Instance.Parent then
                 local props = {}
@@ -1189,14 +1706,11 @@ function Nebula:CreateWindow(config)
             warning = Color3.fromRGB(255, 200, 50),
             error = Color3.fromRGB(255, 80, 80),
         }
+        local typeIcons = {info = "ℹ", success = "✓", warning = "⚠", error = "✗"}
         local accentColor = typeColors[nType] or currentTheme.Accent
-        local typeIcons = {
-            info = "ℹ",
-            success = "✓",
-            warning = "⚠",
-            error = "✗",
-        }
         local icon = typeIcons[nType] or "ℹ"
+
+        PlaySound(nType == "success" and "Success" or (nType == "error" and "Error" or "Notify"), 0.3)
 
         local notif = Instance.new("Frame")
         notif.Parent = ScreenGui
@@ -1229,7 +1743,7 @@ function Nebula:CreateWindow(config)
 
         local nLabel = Instance.new("TextLabel")
         nLabel.Parent = notif
-        nLabel.Size = UDim2.new(1, -45, 1, 0)
+        nLabel.Size = UDim2.new(1, -45, 1, -8)
         nLabel.Position = UDim2.new(0, 38, 0, 0)
         nLabel.BackgroundTransparency = 1
         nLabel.Font = Enum.Font.Code
@@ -1251,7 +1765,6 @@ function Nebula:CreateWindow(config)
 
         PlayTween(notif, {Position = UDim2.new(1, -315, 1, -65)}, 0.4)
         PlayTween(progressBar, {Size = UDim2.new(0, 0, 0, 2)}, duration)
-
         task.delay(duration, function()
             PlayTween(notif, {Position = UDim2.new(1, 10, 1, -65)}, 0.4)
             task.delay(0.45, function() notif:Destroy() end)
@@ -1265,6 +1778,7 @@ function Nebula:CreateWindow(config)
         local Tab = {}
         Tab.Name = tabName
         Tab.Elements = {}
+        Tab.Active = false
 
         local Page = Instance.new("ScrollingFrame")
         Page.Name = tabName
@@ -1346,6 +1860,7 @@ function Nebula:CreateWindow(config)
         end)
 
         local function ActivateTab()
+            PlaySound("TabSwitch", 0.2)
             for _, t in pairs(Window.Tabs) do
                 t.Active = false
                 t.Page.Visible = false
@@ -1362,6 +1877,7 @@ function Nebula:CreateWindow(config)
             PlayTween(activeIndicator, {BackgroundTransparency = 0}, 0.2)
         end
 
+        Tab.Activate = ActivateTab
         sideBtn.MouseButton1Click:Connect(ActivateTab)
 
         if #Window.Tabs == 0 then
@@ -1385,14 +1901,6 @@ function Nebula:CreateWindow(config)
             CreateCorner(card, 8)
             local cs = CreateStroke(card, currentTheme.Stroke, 1)
 
-            local cardGrad = Instance.new("UIGradient")
-            cardGrad.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-                ColorSequenceKeypoint.new(1, Color3.new(0.9, 0.9, 0.95))
-            })
-            cardGrad.Rotation = 45
-            cardGrad.Parent = card
-
             local avatarFrame = Instance.new("Frame")
             avatarFrame.Parent = card
             avatarFrame.Size = UDim2.new(0, 55, 0, 55)
@@ -1402,8 +1910,10 @@ function Nebula:CreateWindow(config)
             local avatar = Instance.new("ImageLabel")
             avatar.Parent = avatarFrame
             avatar.Size = UDim2.new(1, 0, 1, 0)
+            avatar.Position = UDim2.new(0, 0, 0, 0)
             avatar.BackgroundColor3 = currentTheme.Main
             avatar.Image = IsAvatarReady and AvatarContent or ""
+            avatar.Rotation = 0
             CreateCorner(avatar, 27)
             local avStroke = CreateStroke(avatar, currentTheme.Accent, 2)
 
@@ -1418,7 +1928,7 @@ function Nebula:CreateWindow(config)
             local wcAngryLabel = Instance.new("TextLabel")
             wcAngryLabel.Parent = card
             wcAngryLabel.Size = UDim2.new(1, -80, 0, 12)
-            wcAngryLabel.Position = UDim2.new(0, 75, 0, 58)
+            wcAngryLabel.Position = UDim2.new(0, 75, 0, 60)
             wcAngryLabel.BackgroundTransparency = 1
             wcAngryLabel.Text = ""
             wcAngryLabel.Font = Enum.Font.Code
@@ -1429,14 +1939,16 @@ function Nebula:CreateWindow(config)
 
             avatarClickBtn.MouseButton1Click:Connect(function()
                 wcClickCount = wcClickCount + 1
+                PlaySound("Click", 0.2)
                 if wcClickCount <= 3 then
-                    TweenService:Create(avatar, TweenInfo.new(0.4), {Rotation = avatar.Rotation + 360}):Play()
+                    TweenService:Create(avatarFrame, TweenInfo.new(0.4), {Rotation = avatarFrame.Rotation + 360}):Play()
                     wcAngryLabel.Text = ""
                 elseif wcClickCount <= 7 then
-                    TweenService:Create(avatar, TweenInfo.new(0.2), {Rotation = avatar.Rotation + 720}):Play()
+                    TweenService:Create(avatarFrame, TweenInfo.new(0.2), {Rotation = avatarFrame.Rotation + 720}):Play()
                     avStroke.Color = Color3.fromRGB(255, 150, 50)
                     wcAngryLabel.Text = AngryPhrases[math.random(1, #AngryPhrases)]
                     wcAngryLabel.TextColor3 = Color3.fromRGB(255, 150, 50)
+                    PlaySound("Error", 0.3)
                     local orig = avatarFrame.Position
                     for i = 1, 3 do
                         PlayTween(avatarFrame, {Position = orig + UDim2.new(0, (i % 2 == 0 and -4 or 4), 0, 0)}, 0.03)
@@ -1444,10 +1956,11 @@ function Nebula:CreateWindow(config)
                     end
                     PlayTween(avatarFrame, {Position = orig}, 0.03)
                 elseif wcClickCount <= 11 then
-                    TweenService:Create(avatar, TweenInfo.new(0.1), {Rotation = avatar.Rotation + 1440}):Play()
+                    TweenService:Create(avatarFrame, TweenInfo.new(0.1), {Rotation = avatarFrame.Rotation + 1440}):Play()
                     avStroke.Color = Color3.fromRGB(255, 0, 0)
                     wcAngryLabel.Text = AngryPhrases[math.random(1, #AngryPhrases)]:upper() .. "!!!"
                     wcAngryLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                    PlaySound("Error", 0.5)
                     local orig = avatarFrame.Position
                     for i = 1, 5 do
                         PlayTween(avatarFrame, {Position = orig + UDim2.new(0, (i % 2 == 0 and -8 or 8), 0, (i % 2 == 0 and -3 or 3))}, 0.03)
@@ -1459,7 +1972,8 @@ function Nebula:CreateWindow(config)
                     avStroke.Color = Color3.fromRGB(80, 80, 80)
                     PlayTween(avatar, {ImageTransparency = 0.5}, 0.3)
                     task.delay(1.5, function()
-                        PlayTween(avatar, {ImageTransparency = 0, Rotation = 0}, 0.5)
+                        PlayTween(avatar, {ImageTransparency = 0}, 0.5)
+                        TweenService:Create(avatarFrame, TweenInfo.new(0.5), {Rotation = 0}):Play()
                         avStroke.Color = currentTheme.Accent
                         wcAngryLabel.Text = ""
                         wcClickCount = 0
@@ -1543,25 +2057,23 @@ function Nebula:CreateWindow(config)
             contentLabel.BackgroundTransparency = 1
             contentLabel.Font = Enum.Font.Code
             contentLabel.TextSize = 12
-            contentLabel.Text = cfg.Content or "Content"
+            contentLabel.Text = cfg.Content or ""
             contentLabel.TextColor3 = currentTheme.Text
             contentLabel.TextXAlignment = Enum.TextXAlignment.Left
             contentLabel.TextWrapped = true
             contentLabel.AutomaticSize = Enum.AutomaticSize.Y
 
-            local padding = Instance.new("UIPadding")
-            padding.PaddingBottom = UDim.new(0, 10)
-            padding.Parent = holder
+            Instance.new("UIPadding", holder).PaddingBottom = UDim.new(0, 10)
 
             Window:RegisterThemeObject(holder, {BackgroundColor3 = "Card"}, {})
             Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
             Window:RegisterThemeObject(titleLabel, {TextColor3 = "Accent"}, {})
             Window:RegisterThemeObject(contentLabel, {TextColor3 = "Text"}, {})
 
-            local ParagraphAPI = {}
-            function ParagraphAPI:SetTitle(txt) titleLabel.Text = txt end
-            function ParagraphAPI:SetContent(txt) contentLabel.Text = txt end
-            return ParagraphAPI
+            local API = {}
+            function API:SetTitle(t) titleLabel.Text = t end
+            function API:SetContent(t) contentLabel.Text = t end
+            return API
         end
 
         function Tab:AddButton(cfg)
@@ -1585,11 +2097,13 @@ function Nebula:CreateWindow(config)
             btn.MouseEnter:Connect(function() PlayTween(holder, {BackgroundColor3 = currentTheme.Hover}, 0.2) end)
             btn.MouseLeave:Connect(function() PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.2) end)
             btn.MouseButton1Click:Connect(function()
+                PlaySound("Click", 0.3)
                 PlayTween(holder, {BackgroundColor3 = currentTheme.Accent}, 0.1)
                 task.delay(0.15, function() PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.3) end)
                 if cfg.Callback then cfg.Callback() end
             end)
 
+            table.insert(Window.SearchableElements, {Name = cfg.Name or "Button", Type = "button", TabName = tabName})
             Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
             Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
             Window:RegisterThemeObject(btn, {TextColor3 = "Text"}, {})
@@ -1643,12 +2157,14 @@ function Nebula:CreateWindow(config)
 
             toggleBtn.MouseButton1Click:Connect(function()
                 state = not state
+                PlaySound("Toggle", 0.2)
                 UpdateToggle()
                 if cfg.Callback then cfg.Callback(state) end
             end)
             toggleBtn.MouseEnter:Connect(function() PlayTween(holder, {BackgroundColor3 = currentTheme.Hover}, 0.2) end)
             toggleBtn.MouseLeave:Connect(function() PlayTween(holder, {BackgroundColor3 = currentTheme.ElementBg}, 0.2) end)
 
+            table.insert(Window.SearchableElements, {Name = cfg.Name or "Toggle", Type = "toggle", TabName = tabName})
             Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
             Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
             Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
@@ -1720,8 +2236,7 @@ function Nebula:CreateWindow(config)
                 value = math.clamp(newVal, min, max)
                 value = math.floor(value / increment + 0.5) * increment
                 value = math.clamp(value, min, max)
-                local pct = (value - min) / (max - min)
-                PlayTween(sliderFill, {Size = UDim2.new(pct, 0, 1, 0)}, 0.08)
+                PlayTween(sliderFill, {Size = UDim2.new((value - min) / (max - min), 0, 1, 0)}, 0.08)
                 valLabel.Text = tostring(value) .. suffix
             end
             UpdateSlider(value)
@@ -1735,7 +2250,7 @@ function Nebula:CreateWindow(config)
             sliderButton.Text = ""
             sliderButton.ZIndex = 6
 
-            sliderButton.MouseButton1Down:Connect(function() sliding = true end)
+            sliderButton.MouseButton1Down:Connect(function() sliding = true PlaySound("Slider", 0.15) end)
             UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then sliding = false end
             end)
@@ -1745,12 +2260,12 @@ function Nebula:CreateWindow(config)
                     local absX = sliderBg.AbsolutePosition.X
                     local absW = sliderBg.AbsoluteSize.X
                     local pct = math.clamp((mx - absX) / absW, 0, 1)
-                    local newVal = min + (max - min) * pct
-                    UpdateSlider(newVal)
+                    UpdateSlider(min + (max - min) * pct)
                     if cfg.Callback then cfg.Callback(value) end
                 end
             end)
 
+            table.insert(Window.SearchableElements, {Name = cfg.Name or "Slider", Type = "slider", TabName = tabName})
             Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
             Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
             Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
@@ -1822,6 +2337,7 @@ function Nebula:CreateWindow(config)
                 optBtn.MouseEnter:Connect(function() PlayTween(optBtn, {BackgroundColor3 = currentTheme.Hover}, 0.15) end)
                 optBtn.MouseLeave:Connect(function() PlayTween(optBtn, {BackgroundColor3 = currentTheme.Card}, 0.15) end)
                 optBtn.MouseButton1Click:Connect(function()
+                    PlaySound("Click", 0.2)
                     selected = opt
                     header.Text = (cfg.Name or "Dropdown") .. ": " .. opt
                     isOpen = false
@@ -1835,12 +2351,13 @@ function Nebula:CreateWindow(config)
             for _, opt in pairs(options) do CreateOptionBtn(opt) end
 
             header.MouseButton1Click:Connect(function()
+                PlaySound("Click", 0.2)
                 isOpen = not isOpen
-                local targetH = isOpen and (38 + #options * 28 + 8) or 36
-                PlayTween(holder, {Size = UDim2.new(1, 0, 0, targetH)}, 0.25)
+                PlayTween(holder, {Size = UDim2.new(1, 0, 0, isOpen and (38 + #options * 28 + 8) or 36)}, 0.25)
                 PlayTween(arrow, {Rotation = isOpen and 180 or 0}, 0.25)
             end)
 
+            table.insert(Window.SearchableElements, {Name = cfg.Name or "Dropdown", Type = "dropdown", TabName = tabName})
             Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
             Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
             Window:RegisterThemeObject(header, {TextColor3 = "Text"}, {})
@@ -1896,14 +2413,13 @@ function Nebula:CreateWindow(config)
             CreateCorner(inputBox, 4)
             local inputStroke = CreateStroke(inputBox, currentTheme.Stroke, 1)
 
-            inputBox.Focused:Connect(function()
-                PlayTween(inputStroke, {Color = currentTheme.Accent}, 0.2)
-            end)
+            inputBox.Focused:Connect(function() PlayTween(inputStroke, {Color = currentTheme.Accent}, 0.2) end)
             inputBox.FocusLost:Connect(function(enterPressed)
                 PlayTween(inputStroke, {Color = currentTheme.Stroke}, 0.2)
                 if cfg.Callback then cfg.Callback(inputBox.Text, enterPressed) end
             end)
 
+            table.insert(Window.SearchableElements, {Name = cfg.Name or "Input", Type = "textbox", TabName = tabName})
             Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
             Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
             Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
@@ -1951,7 +2467,10 @@ function Nebula:CreateWindow(config)
             CreateCorner(keyBtn, 4)
             local keyStroke = CreateStroke(keyBtn, currentTheme.Stroke, 1)
 
+            Window:RegisterKeybind(cfg.Name or "Keybind", currentKey)
+
             keyBtn.MouseButton1Click:Connect(function()
+                PlaySound("Click", 0.2)
                 listening = true
                 keyBtn.Text = "[...]"
                 PlayTween(keyBtn, {TextColor3 = Color3.fromRGB(255, 255, 100)}, 0.2)
@@ -1963,12 +2482,21 @@ function Nebula:CreateWindow(config)
                     currentKey = input.KeyCode
                     keyBtn.Text = "[" .. currentKey.Name .. "]"
                     PlayTween(keyBtn, {TextColor3 = currentTheme.Accent}, 0.2)
+                    PlaySound("Success", 0.2)
+                    for i, b in pairs(Window.Keybinds) do
+                        if b.Name == (cfg.Name or "Keybind") then
+                            Window.Keybinds[i].Key = currentKey.Name
+                            break
+                        end
+                    end
+                    if KeyboardFrame.Visible then UpdateBindsList() end
                     if cfg.Callback then cfg.Callback(currentKey) end
                 elseif not processed and not listening and input.KeyCode == currentKey then
                     if cfg.OnPress then cfg.OnPress() end
                 end
             end)
 
+            table.insert(Window.SearchableElements, {Name = cfg.Name or "Keybind", Type = "keybind", TabName = tabName})
             Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
             Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
             Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
@@ -1976,7 +2504,14 @@ function Nebula:CreateWindow(config)
             Window:RegisterThemeObject(keyStroke, {}, {Color = "Stroke"})
 
             local KbAPI = {}
-            function KbAPI:SetKey(key) currentKey = key keyBtn.Text = "[" .. key.Name .. "]" end
+            function KbAPI:SetKey(key)
+                currentKey = key
+                keyBtn.Text = "[" .. key.Name .. "]"
+                for i, b in pairs(Window.Keybinds) do
+                    if b.Name == (cfg.Name or "Keybind") then Window.Keybinds[i].Key = key.Name break end
+                end
+                if KeyboardFrame.Visible then UpdateBindsList() end
+            end
             function KbAPI:GetKey() return currentKey end
             return KbAPI
         end
@@ -2044,8 +2579,7 @@ function Nebula:CreateWindow(config)
             hueBar.Position = UDim2.new(0, 10, 0, 165)
             CreateCorner(hueBar, 4)
 
-            local hueGrad = Instance.new("UIGradient")
-            hueGrad.Color = ColorSequence.new({
+            Instance.new("UIGradient", hueBar).Color = ColorSequence.new({
                 ColorSequenceKeypoint.new(0, Color3.fromHSV(0, 1, 1)),
                 ColorSequenceKeypoint.new(0.167, Color3.fromHSV(0.167, 1, 1)),
                 ColorSequenceKeypoint.new(0.333, Color3.fromHSV(0.333, 1, 1)),
@@ -2054,7 +2588,6 @@ function Nebula:CreateWindow(config)
                 ColorSequenceKeypoint.new(0.833, Color3.fromHSV(0.833, 1, 1)),
                 ColorSequenceKeypoint.new(1, Color3.fromHSV(1, 1, 1)),
             })
-            hueGrad.Parent = hueBar
 
             local hueSlider = Instance.new("TextButton")
             hueSlider.Parent = hueBar
@@ -2086,33 +2619,27 @@ function Nebula:CreateWindow(config)
             UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingSV = false draggingH = false end
             end)
-
             RunService.RenderStepped:Connect(function()
                 if draggingSV then
                     local mx = UserInputService:GetMouseLocation()
-                    local ax = canvasHolder.AbsolutePosition.X
-                    local ay = canvasHolder.AbsolutePosition.Y
-                    local aw = canvasHolder.AbsoluteSize.X
-                    local ah = canvasHolder.AbsoluteSize.Y
-                    s = math.clamp((mx.X - ax) / aw, 0, 1)
-                    v = 1 - math.clamp((mx.Y - ay) / ah, 0, 1)
+                    s = math.clamp((mx.X - canvasHolder.AbsolutePosition.X) / canvasHolder.AbsoluteSize.X, 0, 1)
+                    v = 1 - math.clamp((mx.Y - canvasHolder.AbsolutePosition.Y) / canvasHolder.AbsoluteSize.Y, 0, 1)
                     UpdateColor()
                 end
                 if draggingH then
                     local mx = UserInputService:GetMouseLocation()
-                    local ax = hueBar.AbsolutePosition.X
-                    local aw = hueBar.AbsoluteSize.X
-                    h = math.clamp((mx.X - ax) / aw, 0, 1)
+                    h = math.clamp((mx.X - hueBar.AbsolutePosition.X) / hueBar.AbsoluteSize.X, 0, 1)
                     UpdateColor()
                 end
             end)
 
             preview.MouseButton1Click:Connect(function()
+                PlaySound("Click", 0.2)
                 isOpen = not isOpen
-                local targetH = isOpen and 190 or 36
-                PlayTween(holder, {Size = UDim2.new(1, 0, 0, targetH)}, 0.3)
+                PlayTween(holder, {Size = UDim2.new(1, 0, 0, isOpen and 190 or 36)}, 0.3)
             end)
 
+            table.insert(Window.SearchableElements, {Name = cfg.Name or "Color", Type = "colorpicker", TabName = tabName})
             Window:RegisterThemeObject(holder, {BackgroundColor3 = "ElementBg"}, {})
             Window:RegisterThemeObject(hs, {}, {Color = "Stroke"})
             Window:RegisterThemeObject(label, {TextColor3 = "Text"}, {})
