@@ -728,54 +728,71 @@ function Nebula:CreateWindow(config)
     ScreenGui.ResetOnSpawn = false
     Window.ScreenGui = ScreenGui
 
-    local TopButtonsHolder = Instance.new("Frame")
-    TopButtonsHolder.Name = "TopButtonsHolder"
-    TopButtonsHolder.Parent = ScreenGui
-    TopButtonsHolder.AnchorPoint = Vector2.new(0.5, 0)
-    TopButtonsHolder.Position = UDim2.new(0.5, 0, 0, 10)
-    TopButtonsHolder.Size = UDim2.new(0, openBtnWidth, 0, openBtnHeight)
-    TopButtonsHolder.BackgroundTransparency = 1
-    TopButtonsHolder.ZIndex = 10
-    TopButtonsHolder.AutomaticSize = Enum.AutomaticSize.X
+local TopButtonsHolder = Instance.new("Frame")
+TopButtonsHolder.Name = "TopButtonsHolder"
+TopButtonsHolder.Parent = ScreenGui
+TopButtonsHolder.AnchorPoint = Vector2.new(0.5, 0)
+TopButtonsHolder.Position = UDim2.new(0.5, 0, 0, 10)
+TopButtonsHolder.Size = UDim2.new(0, 0, 0, 34)
+TopButtonsHolder.BackgroundTransparency = 1
+TopButtonsHolder.ZIndex = 10
+TopButtonsHolder.AutomaticSize = Enum.AutomaticSize.X
 
-    local topButtonsLayout = Instance.new("UIListLayout")
-    topButtonsLayout.Parent = TopButtonsHolder
-    topButtonsLayout.FillDirection = Enum.FillDirection.Horizontal
-    topButtonsLayout.Padding = UDim.new(0, 8)
-    topButtonsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    topButtonsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    topButtonsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+local topButtonsLayout = Instance.new("UIListLayout")
+topButtonsLayout.Parent = TopButtonsHolder
+topButtonsLayout.FillDirection = Enum.FillDirection.Horizontal
+topButtonsLayout.Padding = UDim.new(0, 8)
+topButtonsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+topButtonsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+topButtonsLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-    local OpenButton = Instance.new("TextButton")
-    OpenButton.Name = "OpenButton"
-    OpenButton.Parent = TopButtonsHolder
-    OpenButton.Size = UDim2.new(0, openBtnWidth, 0, openBtnHeight)
-    OpenButton.BackgroundColor3 = currentTheme.Main
-    OpenButton.Text = openBtnText
-    OpenButton.Font = FONT_BOLD
-    OpenButton.TextSize = 13
-    OpenButton.TextColor3 = currentTheme.Accent
-    OpenButton.AutoButtonColor = false
-    OpenButton.Visible = false
-    OpenButton.ZIndex = 11
-    OpenButton.LayoutOrder = 0
-    Instance.new("UICorner", OpenButton).CornerRadius = UDim.new(1, 0)
-    local OpenStroke = CreateStroke(OpenButton, currentTheme.Accent, 1.5)
-    Window.OpenButton = OpenButton
-    Window.OpenStroke = OpenStroke
+local tbDrag = false
+local tbDragStart, tbStartPos
+TopButtonsHolder.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        tbDrag = true
+        tbDragStart = input.Position
+        tbStartPos = TopButtonsHolder.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then tbDrag = false end
+        end)
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if tbDrag and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - tbDragStart
+        TopButtonsHolder.Position = UDim2.new(tbStartPos.X.Scale, tbStartPos.X.Offset + delta.X, tbStartPos.Y.Scale, tbStartPos.Y.Offset + delta.Y)
+    end
+end)
 
-    OpenButton.MouseEnter:Connect(function()
-        PlayTween(OpenButton, {BackgroundColor3 = currentTheme.Accent, TextColor3 = currentTheme.Main}, 0.2)
-        PlayTween(OpenStroke, {Thickness = 2.5}, 0.2)
-    end)
-    OpenButton.MouseLeave:Connect(function()
-        PlayTween(OpenButton, {BackgroundColor3 = currentTheme.Main, TextColor3 = currentTheme.Accent}, 0.2)
-        PlayTween(OpenStroke, {Thickness = 1.5}, 0.2)
-    end)
-    OpenButton.MouseButton1Click:Connect(function()
-        PlaySound("Click", 0.2)
-        Window:Toggle()
-    end)
+local OpenButton = Instance.new("TextButton")
+OpenButton.Name = "OpenButton"
+OpenButton.Parent = TopButtonsHolder
+OpenButton.Size = UDim2.new(0, openBtnWidth, 0, openBtnHeight)
+OpenButton.BackgroundColor3 = currentTheme.Main
+OpenButton.Text = openBtnText
+OpenButton.Font = FONT_BOLD
+OpenButton.TextSize = 13
+OpenButton.TextColor3 = currentTheme.Accent
+OpenButton.AutoButtonColor = false
+OpenButton.Visible = false
+OpenButton.ZIndex = 11
+OpenButton.LayoutOrder = 0
+CreateCorner(OpenButton, 9)
+local OpenStroke = CreateStroke(OpenButton, currentTheme.Accent, 1.5)
+Window.OpenButton = OpenButton
+Window.OpenStroke = OpenStroke
+
+OpenButton.MouseEnter:Connect(function()
+    PlayTween(OpenButton, {BackgroundColor3 = currentTheme.Accent, TextColor3 = currentTheme.Main}, 0.2)
+end)
+OpenButton.MouseLeave:Connect(function()
+    PlayTween(OpenButton, {BackgroundColor3 = currentTheme.Main, TextColor3 = currentTheme.Accent}, 0.2)
+end)
+OpenButton.MouseButton1Click:Connect(function()
+    PlaySound("Click", 0.2)
+    Window:Toggle()
+end)
 
     function Window:SetOpenButtonText(text)
         OpenButton.Text = text
@@ -791,65 +808,85 @@ function Nebula:CreateWindow(config)
         if strokeColor then OpenStroke.Color = strokeColor end
     end
 
-    function Window:AddQuickButton(cfg)
-        cfg = cfg or {}
-        local qName = cfg.Name or "Action"
-        local qWidth = cfg.Width or 110
-        local qHeight = cfg.Height or 30
-        local qCallback = cfg.Callback
-        local qBgColor = cfg.BackgroundColor or currentTheme.Main
-        local qTextColor = cfg.TextColor or currentTheme.Accent
-        local qStrokeColor = cfg.StrokeColor or currentTheme.Accent
+function Window:AddQuickButton(cfg)
+    cfg = cfg or {}
+    local qName = cfg.Name or "Action"
+    local qWidth = cfg.Width or 80
+    local qHeight = cfg.Height or 34
+    local qCallback = cfg.Callback
+    local qBgColor = cfg.BackgroundColor or currentTheme.Main
+    local qTextColor = cfg.TextColor or currentTheme.Accent
+    local qStrokeColor = cfg.StrokeColor or currentTheme.Accent
+    local qEnabled = true
 
-        local QBtn = Instance.new("TextButton")
-        QBtn.Name = "QuickButton_" .. qName
-        QBtn.Parent = TopButtonsHolder
-        QBtn.Size = UDim2.new(0, qWidth, 0, qHeight)
-        QBtn.BackgroundColor3 = qBgColor
-        QBtn.Text = qName
-        QBtn.Font = FONT_BOLD
-        QBtn.TextSize = 13
-        QBtn.TextColor3 = qTextColor
-        QBtn.AutoButtonColor = false
-        QBtn.ZIndex = 11
-        QBtn.LayoutOrder = #Window.QuickButtons + 1
-        Instance.new("UICorner", QBtn).CornerRadius = UDim.new(1, 0)
-        local QStroke = CreateStroke(QBtn, qStrokeColor, 1.5)
+    local QBtn = Instance.new("TextButton")
+    QBtn.Name = "QuickButton_" .. qName
+    QBtn.Parent = TopButtonsHolder
+    QBtn.Size = UDim2.new(0, qWidth, 0, qHeight)
+    QBtn.BackgroundColor3 = qBgColor
+    QBtn.Text = qName
+    QBtn.Font = FONT_BOLD
+    QBtn.TextSize = 13
+    QBtn.TextColor3 = qTextColor
+    QBtn.AutoButtonColor = false
+    QBtn.ZIndex = 11
+    QBtn.LayoutOrder = #Window.QuickButtons + 1
+    CreateCorner(QBtn, 9)
+    local QStroke = CreateStroke(QBtn, qStrokeColor, 1.5)
 
-        QBtn.MouseEnter:Connect(function()
+    QBtn.MouseEnter:Connect(function()
+        if qEnabled then
             PlayTween(QBtn, {BackgroundColor3 = qStrokeColor, TextColor3 = currentTheme.Main}, 0.2)
-            PlayTween(QStroke, {Thickness = 2.5}, 0.2)
-        end)
-        QBtn.MouseLeave:Connect(function()
-            PlayTween(QBtn, {BackgroundColor3 = qBgColor, TextColor3 = qTextColor}, 0.2)
-            PlayTween(QStroke, {Thickness = 1.5}, 0.2)
-        end)
-        QBtn.MouseButton1Click:Connect(function()
-            PlaySound("Click", 0.2)
-            PlayTween(QBtn, {BackgroundColor3 = qStrokeColor}, 0.1)
-            task.delay(0.15, function()
-                PlayTween(QBtn, {BackgroundColor3 = qBgColor}, 0.3)
-            end)
-            if qCallback then qCallback() end
-        end)
-
-        local qData = {Button = QBtn, Stroke = QStroke, BgColor = qBgColor, TextColor = qTextColor, StrokeColor = qStrokeColor}
-        table.insert(Window.QuickButtons, qData)
-
-        local API = {}
-        function API:SetText(newText) QBtn.Text = newText end
-        function API:SetSize(w, h) QBtn.Size = UDim2.new(0, w or qWidth, 0, h or qHeight) end
-        function API:SetColors(bg, txt, stroke)
-            if bg then QBtn.BackgroundColor3 = bg qData.BgColor = bg end
-            if txt then QBtn.TextColor3 = txt qData.TextColor = txt end
-            if stroke then QStroke.Color = stroke qData.StrokeColor = stroke end
         end
-        function API:SetCallback(fn) qCallback = fn end
-        function API:SetVisible(visible) QBtn.Visible = visible end
-        function API:Destroy() QBtn:Destroy() end
-        return API
-    end
+    end)
+    QBtn.MouseLeave:Connect(function()
+        if qEnabled then
+            PlayTween(QBtn, {BackgroundColor3 = qBgColor, TextColor3 = qTextColor}, 0.2)
+        else
+            PlayTween(QBtn, {BackgroundColor3 = Color3.fromRGB(40, 40, 40), TextColor3 = Color3.fromRGB(80, 80, 80)}, 0.2)
+        end
+    end)
+    QBtn.MouseButton1Click:Connect(function()
+        if not qEnabled then return end
+        PlaySound("Click", 0.2)
+        PlayTween(QBtn, {BackgroundColor3 = qStrokeColor}, 0.1)
+        task.delay(0.15, function()
+            if qEnabled then
+                PlayTween(QBtn, {BackgroundColor3 = qBgColor}, 0.3)
+            end
+        end)
+        if qCallback then qCallback() end
+    end)
 
+    local qData = {Button = QBtn, Stroke = QStroke, BgColor = qBgColor, TextColor = qTextColor, StrokeColor = qStrokeColor, Enabled = true}
+    table.insert(Window.QuickButtons, qData)
+
+    local API = {}
+    function API:SetText(newText) QBtn.Text = newText end
+    function API:SetSize(w, h) QBtn.Size = UDim2.new(0, w or qWidth, 0, h or qHeight) end
+    function API:SetColors(bg, txt, stroke)
+        if bg then QBtn.BackgroundColor3 = bg qBgColor = bg qData.BgColor = bg end
+        if txt then QBtn.TextColor3 = txt qTextColor = txt qData.TextColor = txt end
+        if stroke then QStroke.Color = stroke qStrokeColor = stroke qData.StrokeColor = stroke end
+    end
+    function API:SetCallback(fn) qCallback = fn end
+    function API:SetVisible(visible) QBtn.Visible = visible end
+    function API:SetEnabled(enabled)
+        qEnabled = enabled
+        qData.Enabled = enabled
+        if enabled then
+            PlayTween(QBtn, {BackgroundColor3 = qBgColor, TextColor3 = qTextColor}, 0.3)
+            QStroke.Color = qStrokeColor
+        else
+            PlayTween(QBtn, {BackgroundColor3 = Color3.fromRGB(40, 40, 40), TextColor3 = Color3.fromRGB(80, 80, 80)}, 0.3)
+            QStroke.Color = Color3.fromRGB(60, 60, 60)
+        end
+    end
+    function API:IsEnabled() return qEnabled end
+    function API:Destroy() QBtn:Destroy() end
+    return API
+end
+    
     local WatermarkFrame = Instance.new("Frame")
     WatermarkFrame.Name = "Watermark"
     WatermarkFrame.Parent = ScreenGui
@@ -1674,27 +1711,45 @@ function Nebula:CreateWindow(config)
         end
     end)
 
-    function Window:Toggle()
-        Window.Visible = not Window.Visible
-        PlaySound("Click", 0.2)
-        if Window.Visible then
-            GlowFrame.Visible = true
-            MainFrame.BackgroundTransparency = 1
-            GlowFrame.BackgroundTransparency = 1
-            PlayTween(MainFrame, {BackgroundTransparency = 0}, 0.3)
-            PlayTween(GlowFrame, {BackgroundTransparency = 0.7}, 0.3)
-            OpenButton.Visible = false
-        else
-            PlayTween(MainFrame, {BackgroundTransparency = 1}, 0.3)
-            PlayTween(GlowFrame, {BackgroundTransparency = 1}, 0.3)
-            task.delay(0.3, function()
-                if not Window.Visible then
-                    GlowFrame.Visible = false
-                    OpenButton.Visible = true
-                end
-            end)
+function Window:Toggle()
+    Window.Visible = not Window.Visible
+    PlaySound("Click", 0.2)
+    if Window.Visible then
+        GlowFrame.Visible = true
+        MainFrame.BackgroundTransparency = 1
+        GlowFrame.BackgroundTransparency = 1
+        PlayTween(MainFrame, {BackgroundTransparency = 0}, 0.3)
+        PlayTween(GlowFrame, {BackgroundTransparency = 0.7}, 0.3)
+        OpenButton.Visible = false
+        for _, qd in pairs(Window.QuickButtons) do
+            qd.Button.Visible = false
         end
+    else
+        PlayTween(MainFrame, {BackgroundTransparency = 1}, 0.3)
+        PlayTween(GlowFrame, {BackgroundTransparency = 1}, 0.3)
+        task.delay(0.3, function()
+            if not Window.Visible then
+                GlowFrame.Visible = false
+                OpenButton.Visible = true
+                for _, qd in pairs(Window.QuickButtons) do
+                    qd.Button.Visible = true
+                end
+            end
+        end)
     end
+end
+
+function Window:ShowQuickButtons()
+    for _, qd in pairs(Window.QuickButtons) do
+        qd.Button.Visible = true
+    end
+end
+
+function Window:HideQuickButtons()
+    for _, qd in pairs(Window.QuickButtons) do
+        qd.Button.Visible = false
+    end
+end
 
     function Window:Destroy() ScreenGui:Destroy() end
 
