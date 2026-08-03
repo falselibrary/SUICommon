@@ -731,20 +731,10 @@ function Nebula:CreateWindow(config)
 local TopButtonsHolder = Instance.new("Frame")
 TopButtonsHolder.Name = "TopButtonsHolder"
 TopButtonsHolder.Parent = ScreenGui
-TopButtonsHolder.AnchorPoint = Vector2.new(0.5, 0)
-TopButtonsHolder.Position = UDim2.new(0.5, 0, 0, 10)
-TopButtonsHolder.Size = UDim2.new(0, 0, 0, 34)
+TopButtonsHolder.Position = UDim2.new(0, 0, 0, 0)
+TopButtonsHolder.Size = UDim2.new(1, 0, 1, 0)
 TopButtonsHolder.BackgroundTransparency = 1
 TopButtonsHolder.ZIndex = 10
-TopButtonsHolder.AutomaticSize = Enum.AutomaticSize.X
-
-local topButtonsLayout = Instance.new("UIListLayout")
-topButtonsLayout.Parent = TopButtonsHolder
-topButtonsLayout.FillDirection = Enum.FillDirection.Horizontal
-topButtonsLayout.Padding = UDim.new(0, 8)
-topButtonsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-topButtonsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-topButtonsLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 local tbDrag = false
 local tbDragStart, tbStartPos
@@ -768,6 +758,8 @@ end)
 local OpenButton = Instance.new("TextButton")
 OpenButton.Name = "OpenButton"
 OpenButton.Parent = TopButtonsHolder
+OpenButton.AnchorPoint = Vector2.new(0.5, 0)
+OpenButton.Position = UDim2.new(0.5, 0, 0, 10)
 OpenButton.Size = UDim2.new(0, openBtnWidth, 0, openBtnHeight)
 OpenButton.BackgroundColor3 = currentTheme.Main
 OpenButton.Text = openBtnText
@@ -777,7 +769,6 @@ OpenButton.TextColor3 = currentTheme.Accent
 OpenButton.AutoButtonColor = false
 OpenButton.Visible = false
 OpenButton.ZIndex = 11
-OpenButton.LayoutOrder = 0
 CreateCorner(OpenButton, 9)
 local OpenStroke = CreateStroke(OpenButton, currentTheme.Accent, 1.5)
 Window.OpenButton = OpenButton
@@ -789,9 +780,40 @@ end)
 OpenButton.MouseLeave:Connect(function()
     PlayTween(OpenButton, {BackgroundColor3 = currentTheme.Main, TextColor3 = currentTheme.Accent}, 0.2)
 end)
-OpenButton.MouseButton1Click:Connect(function()
-    PlaySound("Click", 0.2)
-    Window:Toggle()
+
+local openDragging = false
+local openDragStart, openStartPos
+local openMouseDown = false
+local openClickStart = 0
+
+OpenButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        openMouseDown = true
+        openClickStart = tick()
+        openDragStart = input.Position
+        openStartPos = OpenButton.Position
+        openDragging = false
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                openMouseDown = false
+                if not openDragging and tick() - openClickStart < 0.3 then
+                    PlaySound("Click", 0.2)
+                    Window:Toggle()
+                end
+                openDragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if openMouseDown and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - openDragStart
+        if delta.Magnitude > 5 then openDragging = true end
+        if openDragging then
+            OpenButton.Position = UDim2.new(openStartPos.X.Scale, openStartPos.X.Offset + delta.X, openStartPos.Y.Scale, openStartPos.Y.Offset + delta.Y)
+        end
+    end
 end)
 
     function Window:SetOpenButtonText(text)
@@ -818,10 +840,12 @@ function Window:AddQuickButton(cfg)
     local qTextColor = cfg.TextColor or currentTheme.Accent
     local qStrokeColor = cfg.StrokeColor or currentTheme.Accent
     local qEnabled = true
+    local qPosition = cfg.Position or UDim2.new(0, 20, 0, 60 + (#Window.QuickButtons) * 42)
 
     local QBtn = Instance.new("TextButton")
     QBtn.Name = "QuickButton_" .. qName
     QBtn.Parent = TopButtonsHolder
+    QBtn.Position = qPosition
     QBtn.Size = UDim2.new(0, qWidth, 0, qHeight)
     QBtn.BackgroundColor3 = qBgColor
     QBtn.Text = qName
@@ -830,7 +854,6 @@ function Window:AddQuickButton(cfg)
     QBtn.TextColor3 = qTextColor
     QBtn.AutoButtonColor = false
     QBtn.ZIndex = 11
-    QBtn.LayoutOrder = #Window.QuickButtons + 1
     CreateCorner(QBtn, 9)
     local QStroke = CreateStroke(QBtn, qStrokeColor, 1.5)
 
@@ -842,20 +865,48 @@ function Window:AddQuickButton(cfg)
     QBtn.MouseLeave:Connect(function()
         if qEnabled then
             PlayTween(QBtn, {BackgroundColor3 = qBgColor, TextColor3 = qTextColor}, 0.2)
-        else
-            PlayTween(QBtn, {BackgroundColor3 = Color3.fromRGB(40, 40, 40), TextColor3 = Color3.fromRGB(80, 80, 80)}, 0.2)
         end
     end)
-    QBtn.MouseButton1Click:Connect(function()
-        if not qEnabled then return end
-        PlaySound("Click", 0.2)
-        PlayTween(QBtn, {BackgroundColor3 = qStrokeColor}, 0.1)
-        task.delay(0.15, function()
-            if qEnabled then
-                PlayTween(QBtn, {BackgroundColor3 = qBgColor}, 0.3)
+
+    local qMouseDown = false
+    local qDragging = false
+    local qClickStart = 0
+    local qDragStart, qStartPos
+
+    QBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            qMouseDown = true
+            qClickStart = tick()
+            qDragStart = input.Position
+            qStartPos = QBtn.Position
+            qDragging = false
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    qMouseDown = false
+                    if not qDragging and tick() - qClickStart < 0.3 and qEnabled then
+                        PlaySound("Click", 0.2)
+                        PlayTween(QBtn, {BackgroundColor3 = qStrokeColor}, 0.1)
+                        task.delay(0.15, function()
+                            if qEnabled then
+                                PlayTween(QBtn, {BackgroundColor3 = qBgColor}, 0.3)
+                            end
+                        end)
+                        if qCallback then qCallback() end
+                    end
+                    qDragging = false
+                end
+            end)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if qMouseDown and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - qDragStart
+            if delta.Magnitude > 5 then qDragging = true end
+            if qDragging then
+                QBtn.Position = UDim2.new(qStartPos.X.Scale, qStartPos.X.Offset + delta.X, qStartPos.Y.Scale, qStartPos.Y.Offset + delta.Y)
             end
-        end)
-        if qCallback then qCallback() end
+        end
     end)
 
     local qData = {Button = QBtn, Stroke = QStroke, BgColor = qBgColor, TextColor = qTextColor, StrokeColor = qStrokeColor, Enabled = true}
@@ -864,6 +915,8 @@ function Window:AddQuickButton(cfg)
     local API = {}
     function API:SetText(newText) QBtn.Text = newText end
     function API:SetSize(w, h) QBtn.Size = UDim2.new(0, w or qWidth, 0, h or qHeight) end
+    function API:SetPosition(pos) QBtn.Position = pos end
+    function API:GetPosition() return QBtn.Position end
     function API:SetColors(bg, txt, stroke)
         if bg then QBtn.BackgroundColor3 = bg qBgColor = bg qData.BgColor = bg end
         if txt then QBtn.TextColor3 = txt qTextColor = txt qData.TextColor = txt end
